@@ -1,0 +1,6 @@
+.env
+.golangci.yml
+
+build/
+Makefile
+README.md
