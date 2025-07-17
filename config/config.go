@@ -16,7 +16,7 @@ type (
 	}
 
 	Server struct {
-		Name            string        `env:"SERVER_NAME" env-default:"SubscriptionAggregator API"`
+		Name            string        `env:"SERVER_NAME" env-default:"Subscription Aggregator API"`
 		Port            string        `env:"SERVER_PORT" env-default:"8000"`
 		ShutdownTimeout time.Duration `env:"SERVER_SHUTDOWN_TIMEOUT" env-default:"5s"`
 	}

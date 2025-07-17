@@ -1,0 +1,15 @@
+basePath: /api/v1
+consumes:
+- application/json
+host: 127.0.0.1:8000
+info:
+  contact: {}
+  description: HTTP API для агрегации данных об онлайн-подписках пользователей
+  title: Subscription Aggregator API
+  version: 1.0.0
+paths: {}
+produces:
+- application/json
+schemes:
+- http
+swagger: "2.0"

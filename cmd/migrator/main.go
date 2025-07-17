@@ -4,9 +4,9 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 
+	"github.com/sirupsen/logrus"
 	cli "github.com/urfave/cli/v3"
 
 	"SubscriptionAggregator/cmd/migrator/commands"
@@ -16,7 +16,7 @@ import (
 
 func main() {
 	if err := startMigrator(); err != nil {
-		log.Fatal(err)
+		logrus.Fatal(err)
 	}
 }
 
@@ -33,11 +33,7 @@ func startMigrator() error {
 		return err
 	}
 	// defer migrate manager close
-	defer func() {
-		if err := migrateManager.Close(); err != nil {
-			log.Printf("close migrate manager: %v \n", err)
-		}
-	}()
+	defer migrateManager.Close()
 
 	// create migrator cmd
 	cmd := &cli.Command{
