@@ -77,7 +77,7 @@ func TestSubs_GetList(t *testing.T) {
 }
 
 func TestSubs_Update(t *testing.T) {
-	t.Log("Update book by ID")
+	t.Log("Update subs")
 
 	updatedSubs := entity.Subscription{
 		ID:          _subsUUID,
