@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"SubscriptionAggregator/internal/app/entity"
+	"SubscriptionAggregator/internal/app/errors"
 	"SubscriptionAggregator/internal/app/repo"
 	"SubscriptionAggregator/internal/pkg/database"
 )
@@ -21,7 +22,7 @@ const (
 var (
 	_repo repo.SubsRepoDB
 
-	_subsUUID = uuid.New().String()
+	_subsUUID = uuid.NewString()
 	_userUUID = "60601fee-2bf1-4721-ae6f-7636e79a0cba"
 )
 
@@ -80,8 +81,8 @@ func TestSubs_Update(t *testing.T) {
 
 	updatedSubs := entity.Subscription{
 		ID:          _subsUUID,
-		ServiceName: "Kion",
-		Price:       500,
+		ServiceName: "Kinopisk",
+		Price:       350,
 		UserID:      "60601fee-2bf1-4721-ae6f-7636e79a0cba",
 		StartDate:   time.Now().UTC(),
 	}
@@ -92,7 +93,25 @@ func TestSubs_Update(t *testing.T) {
 	t.Logf("Updated subs: %+v", updatedSubs)
 }
 
-func TestSubs_Remove(t *testing.T) {
+func TestSubs_UpdateUnexisting(t *testing.T) {
+	t.Log("Try to update unexisting subs")
+
+	updatedSubs := entity.Subscription{
+		ID:          uuid.NewString(),
+		ServiceName: "Kion",
+		Price:       500,
+		UserID:      "60601fee-2bf1-4721-ae6f-7636e79a0cba",
+		StartDate:   time.Now().UTC(),
+	}
+
+	err := _repo.Update(&updatedSubs)
+	require.Error(t, err)
+	require.ErrorIs(t, err, errors.ErrNotFound)
+
+	t.Log("Unexisting subs")
+}
+
+func TestSubs_Delete(t *testing.T) {
 	t.Log("Remove subs by ID")
 
 	err := _repo.Delete(_subsUUID)

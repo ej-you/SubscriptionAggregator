@@ -51,6 +51,11 @@ func (r *subsRepoPG) GetByID(id string) (*entity.Subscription, error) {
 
 // Update updates all subscription fields with given data by giving subs id.
 func (r *subsRepoPG) Update(subs *entity.Subscription) error {
+	// check that given subs exists
+	if _, err := r.GetByID(subs.ID); err != nil {
+		return fmt.Errorf("update: %w", err)
+	}
+	// update subs
 	if err := r.dbStorage.Save(subs).Error; err != nil {
 		return fmt.Errorf("update: %w", err)
 	}
