@@ -9,22 +9,22 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"       // engine for migration files
 )
 
-var _ Migrate = (*cockroachMigrate)(nil)
+var _ Migrate = (*pgMigrate)(nil)
 
-// Migrate implementation.
-type cockroachMigrate struct {
+// Migrate implementation for PostgreSQL.
+type pgMigrate struct {
 	mgrt *gomigrate.Migrate
 }
 
-func NewCockroachMigrate(sourceURL, databaseURL string) (Migrate, error) {
+func NewPostgreSQLMigrate(sourceURL, databaseURL string) (Migrate, error) {
 	mgrt, err := gomigrate.New(sourceURL, databaseURL)
 	if err != nil {
 		return nil, fmt.Errorf("create migrate manager: %w", err)
 	}
-	return &cockroachMigrate{mgrt: mgrt}, nil
+	return &pgMigrate{mgrt: mgrt}, nil
 }
 
-func (c *cockroachMigrate) Status() (version uint, isDirty bool, err error) {
+func (c *pgMigrate) Status() (version uint, isDirty bool, err error) {
 	v, d, err := c.mgrt.Version()
 	if err != nil && !errors.Is(err, gomigrate.ErrNilVersion) {
 		return 0, false, fmt.Errorf("migrate status: %w", err)
@@ -32,7 +32,7 @@ func (c *cockroachMigrate) Status() (version uint, isDirty bool, err error) {
 	return v, d, nil
 }
 
-func (c *cockroachMigrate) Up() error {
+func (c *pgMigrate) Up() error {
 	err := c.mgrt.Up()
 	if err != nil && !errors.Is(err, gomigrate.ErrNoChange) {
 		return fmt.Errorf("migrate up: %w", err)
@@ -40,7 +40,7 @@ func (c *cockroachMigrate) Up() error {
 	return nil
 }
 
-func (c *cockroachMigrate) Down() error {
+func (c *pgMigrate) Down() error {
 	err := c.mgrt.Down()
 	if err != nil && !errors.Is(err, gomigrate.ErrNoChange) {
 		return fmt.Errorf("migrate down: %w", err)
@@ -48,7 +48,7 @@ func (c *cockroachMigrate) Down() error {
 	return nil
 }
 
-func (c *cockroachMigrate) Step(n int) error {
+func (c *pgMigrate) Step(n int) error {
 	err := c.mgrt.Steps(n)
 	if err != nil {
 		return fmt.Errorf("migrate step: %w", err)
@@ -56,7 +56,7 @@ func (c *cockroachMigrate) Step(n int) error {
 	return nil
 }
 
-func (c *cockroachMigrate) Force(n int) error {
+func (c *pgMigrate) Force(n int) error {
 	err := c.mgrt.Force(n)
 	if err != nil {
 		return fmt.Errorf("migrate force: %w", err)
@@ -64,7 +64,7 @@ func (c *cockroachMigrate) Force(n int) error {
 	return nil
 }
 
-func (c *cockroachMigrate) Close() error {
+func (c *pgMigrate) Close() error {
 	sourceCloseErr, dbCloseErr := c.mgrt.Close()
 	if sourceCloseErr != nil && dbCloseErr != nil {
 		return fmt.Errorf("close database: %s && close source: %w", dbCloseErr.Error(), sourceCloseErr)

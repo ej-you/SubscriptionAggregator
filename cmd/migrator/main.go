@@ -27,7 +27,7 @@ func startMigrator() error {
 		return err
 	}
 	// create migrate manager
-	migrateManager, err := migrate.NewCockroachMigrate(
+	migrateManager, err := migrate.NewPostgreSQLMigrate(
 		cfg.DB.MigrationsURL, cfg.DB.ConnURL)
 	if err != nil {
 		return err

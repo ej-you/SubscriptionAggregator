@@ -1,0 +1,76 @@
+// Package pg contains PostgreSQL DB repos implementations for entities.
+package pg
+
+import (
+	goerrors "errors"
+	"fmt"
+
+	"gorm.io/gorm"
+
+	"SubscriptionAggregator/internal/app/entity"
+	"SubscriptionAggregator/internal/app/errors"
+	"SubscriptionAggregator/internal/app/repo"
+)
+
+var _ repo.SubsRepoDB = (*subsRepoPG)(nil)
+
+// SubsRepoDB implementation.
+type subsRepoPG struct {
+	dbStorage *gorm.DB
+}
+
+func NewSubsRepoDB(dbStorage *gorm.DB) repo.SubsRepoDB {
+	return &subsRepoPG{
+		dbStorage: dbStorage,
+	}
+}
+
+// Create creates new subscription.
+// All necessary fields must be presented.
+func (r *subsRepoPG) Create(subs *entity.Subscription) error {
+	if err := r.dbStorage.Create(subs).Error; err != nil {
+		return fmt.Errorf("create: %w", err)
+	}
+	return nil
+}
+
+// GetByID gets subscription by given ID and returns it.
+func (r *subsRepoPG) GetByID(id string) (*entity.Subscription, error) {
+	subs := &entity.Subscription{}
+
+	err := r.dbStorage.Where("id = ?", id).First(subs).Error
+	// if record not found
+	if goerrors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, errors.ErrNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("get by id: %w", err)
+	}
+	return subs, nil
+}
+
+// Update updates all subscription fields with given data by giving subs id.
+func (r *subsRepoPG) Update(subs *entity.Subscription) error {
+	if err := r.dbStorage.Save(subs).Error; err != nil {
+		return fmt.Errorf("update: %w", err)
+	}
+	return nil
+}
+
+// Delete deletes subscription by its ID.
+func (r *subsRepoPG) Delete(id string) error {
+	if err := r.dbStorage.Delete(&entity.Subscription{}, "id = ?", id).Error; err != nil {
+		return fmt.Errorf("delete: %w", err)
+	}
+	return nil
+}
+
+// GetList gets all subscriptions and returns it.
+func (r *subsRepoPG) GetList() (entity.SubscriptionList, error) {
+	var subsList entity.SubscriptionList
+
+	if err := r.dbStorage.Find(&subsList).Error; err != nil {
+		return nil, fmt.Errorf("get list: %w", err)
+	}
+	return subsList, nil
+}

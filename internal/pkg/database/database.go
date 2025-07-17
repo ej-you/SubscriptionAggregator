@@ -115,7 +115,7 @@ func WithDisableColorful() Option {
 }
 
 // Set connection for DB. Required.
-// In this case used SQLite as DB.
+// In this case used PostgreSQL as DB.
 func withConn(dsn string) gorm.Dialector {
 	return postgres.Open(dsn)
 }

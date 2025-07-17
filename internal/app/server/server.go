@@ -47,7 +47,13 @@ type httpServer struct {
 func New(cfg *config.Config) (Server, error) {
 	logger.Init()
 
-	gormDB, err := database.New(cfg.DB.ConnString)
+	gormDB, err := database.New(cfg.DB.ConnString,
+		database.WithTranslateError(),
+		database.WithIgnoreNotFound(),
+		database.WithDisableColorful(),
+		database.WithWarnLogLevel(),
+		database.WithLogger(logrus.StandardLogger()),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("db: %w", err)
 	}
