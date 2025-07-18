@@ -12,5 +12,5 @@ type SubsUsecase interface {
 	Update(subs *entity.Subscription) error
 	Delete(id string) error
 	GetAll() (entity.SubscriptionList, error)
-	GetUserServieSum(userID, serviceName string) (int, error)
+	GetSum(filter *entity.SubscriptionSumFilter) (int, error)
 }

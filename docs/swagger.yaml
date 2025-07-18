@@ -1,13 +1,227 @@
 basePath: /api/v1
 consumes:
 - application/json
+definitions:
+  entity.Subscription:
+    description: Subscription object
+    properties:
+      end_date:
+        description: end date
+        type: string
+      id:
+        description: subscription uuid
+        type: string
+      price:
+        description: price
+        type: integer
+      service_name:
+        description: service name
+        type: string
+      start_date:
+        description: start date
+        type: string
+      user_id:
+        description: user uuid
+        type: string
+    type: object
+  entity.SubscriptionSum:
+    description: Sum of subs prices filtered by Filter.
+    properties:
+      filter:
+        $ref: '#/definitions/entity.SubscriptionSumFilter'
+      sum:
+        type: integer
+    type: object
+  entity.SubscriptionSumFilter:
+    description: Filter for SubscriptionSum result.
+    properties:
+      end_date:
+        description: end date
+        type: string
+      service_name:
+        description: service name
+        type: string
+      start_date:
+        description: start date
+        type: string
+      user_id:
+        description: user uuid
+        type: string
+    type: object
+  v1.inSubs:
+    description: inSubs is body input data with subs data.
+    properties:
+      end_date:
+        description: end date
+        example: 08-2025
+        type: string
+      price:
+        description: price
+        example: 400
+        type: integer
+      service_name:
+        description: service name
+        example: Yandex Plus
+        maxLength: 100
+        type: string
+      start_date:
+        description: start date
+        example: 07-2025
+        type: string
+      user_id:
+        description: user uuid
+        example: 60601fee-2bf1-4721-ae6f-7636e79a0cba
+        type: string
+    required:
+    - price
+    - service_name
+    - start_date
+    - user_id
+    type: object
 host: 127.0.0.1:8000
 info:
   contact: {}
   description: HTTP API для агрегации данных об онлайн-подписках пользователей
   title: Subscription Aggregator API
   version: 1.0.0
-paths: {}
+paths:
+  /subs:
+    get:
+      description: Получение всех записей подписок.
+      operationId: get-all-subs
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/entity.Subscription'
+            type: array
+      summary: Получить все записи подписок
+      tags:
+      - subs-crudl
+    post:
+      description: Создание новой записи подписки.
+      operationId: create-sub
+      parameters:
+      - description: Информация о подписке
+        in: body
+        name: Sub
+        required: true
+        schema:
+          $ref: '#/definitions/v1.inSubs'
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entity.Subscription'
+        "400":
+          description: Невалидное тело запроса
+      summary: Создать запись подписки
+      tags:
+      - subs-crudl
+  /subs/{id}:
+    delete:
+      description: Удаление записи подписки по её ID.
+      operationId: delete-sub
+      parameters:
+      - description: UUID подписки
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: Успешное удаление
+        "400":
+          description: Невалидный параметр запроса
+      summary: Удалить запись подписки
+      tags:
+      - subs-crudl
+    get:
+      description: Получение записи подписки по её ID.
+      operationId: get-sub
+      parameters:
+      - description: UUID подписки
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.Subscription'
+        "400":
+          description: Невалидный параметр запроса
+        "404":
+          description: Подписка не найдена
+      summary: Получить запись подписки
+      tags:
+      - subs-crudl
+    patch:
+      description: Обновление записи подписки по её ID.
+      operationId: update-sub
+      parameters:
+      - description: UUID подписки
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Информация о подписке
+        in: body
+        name: Sub
+        required: true
+        schema:
+          $ref: '#/definitions/v1.inSubs'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.Subscription'
+        "400":
+          description: Невалидный параметр или тело запроса
+        "404":
+          description: Подписка не найдена
+      summary: Обновить запись подписки
+      tags:
+      - subs-crudl
+  /subs/sum:
+    get:
+      description: Получение суммарной стоимости всех подписок за выбранный период
+        с фильтрацией по id пользователя и названию подписки.
+      operationId: get-subs-sum
+      parameters:
+      - description: end date
+        example: 08-2025
+        in: query
+        name: endDate
+        type: string
+      - description: service name
+        example: Yandex Plus
+        in: query
+        maxLength: 100
+        name: serviceName
+        type: string
+      - description: start date
+        example: 07-2025
+        in: query
+        name: startDate
+        type: string
+      - description: user uuid
+        example: 60601fee-2bf1-4721-ae6f-7636e79a0cba
+        in: query
+        name: userID
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.SubscriptionSum'
+        "400":
+          description: Невалидный(ые) параметр(ы) запроса
+      summary: Получить суммарную стоимость подписок
+      tags:
+      - subs-advanced
 produces:
 - application/json
 schemes:

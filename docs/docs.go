@@ -20,7 +20,313 @@ const docTemplate = `{
     },
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
-    "paths": {}
+    "paths": {
+        "/subs": {
+            "get": {
+                "description": "Получение всех записей подписок.",
+                "tags": [
+                    "subs-crudl"
+                ],
+                "summary": "Получить все записи подписок",
+                "operationId": "get-all-subs",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/entity.Subscription"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Создание новой записи подписки.",
+                "tags": [
+                    "subs-crudl"
+                ],
+                "summary": "Создать запись подписки",
+                "operationId": "create-sub",
+                "parameters": [
+                    {
+                        "description": "Информация о подписке",
+                        "name": "Sub",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.inSubs"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/entity.Subscription"
+                        }
+                    },
+                    "400": {
+                        "description": "Невалидное тело запроса"
+                    }
+                }
+            }
+        },
+        "/subs/sum": {
+            "get": {
+                "description": "Получение суммарной стоимости всех подписок за выбранный период с фильтрацией по id пользователя и названию подписки.",
+                "tags": [
+                    "subs-advanced"
+                ],
+                "summary": "Получить суммарную стоимость подписок",
+                "operationId": "get-subs-sum",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "08-2025",
+                        "description": "end date",
+                        "name": "endDate",
+                        "in": "query"
+                    },
+                    {
+                        "maxLength": 100,
+                        "type": "string",
+                        "example": "Yandex Plus",
+                        "description": "service name",
+                        "name": "serviceName",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "07-2025",
+                        "description": "start date",
+                        "name": "startDate",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "60601fee-2bf1-4721-ae6f-7636e79a0cba",
+                        "description": "user uuid",
+                        "name": "userID",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.SubscriptionSum"
+                        }
+                    },
+                    "400": {
+                        "description": "Невалидный(ые) параметр(ы) запроса"
+                    }
+                }
+            }
+        },
+        "/subs/{id}": {
+            "get": {
+                "description": "Получение записи подписки по её ID.",
+                "tags": [
+                    "subs-crudl"
+                ],
+                "summary": "Получить запись подписки",
+                "operationId": "get-sub",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID подписки",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.Subscription"
+                        }
+                    },
+                    "400": {
+                        "description": "Невалидный параметр запроса"
+                    },
+                    "404": {
+                        "description": "Подписка не найдена"
+                    }
+                }
+            },
+            "delete": {
+                "description": "Удаление записи подписки по её ID.",
+                "tags": [
+                    "subs-crudl"
+                ],
+                "summary": "Удалить запись подписки",
+                "operationId": "delete-sub",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID подписки",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Успешное удаление"
+                    },
+                    "400": {
+                        "description": "Невалидный параметр запроса"
+                    }
+                }
+            },
+            "patch": {
+                "description": "Обновление записи подписки по её ID.",
+                "tags": [
+                    "subs-crudl"
+                ],
+                "summary": "Обновить запись подписки",
+                "operationId": "update-sub",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID подписки",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Информация о подписке",
+                        "name": "Sub",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.inSubs"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.Subscription"
+                        }
+                    },
+                    "400": {
+                        "description": "Невалидный параметр или тело запроса"
+                    },
+                    "404": {
+                        "description": "Подписка не найдена"
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "entity.Subscription": {
+            "description": "Subscription object",
+            "type": "object",
+            "properties": {
+                "end_date": {
+                    "description": "end date",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "subscription uuid",
+                    "type": "string"
+                },
+                "price": {
+                    "description": "price",
+                    "type": "integer"
+                },
+                "service_name": {
+                    "description": "service name",
+                    "type": "string"
+                },
+                "start_date": {
+                    "description": "start date",
+                    "type": "string"
+                },
+                "user_id": {
+                    "description": "user uuid",
+                    "type": "string"
+                }
+            }
+        },
+        "entity.SubscriptionSum": {
+            "description": "Sum of subs prices filtered by Filter.",
+            "type": "object",
+            "properties": {
+                "filter": {
+                    "$ref": "#/definitions/entity.SubscriptionSumFilter"
+                },
+                "sum": {
+                    "type": "integer"
+                }
+            }
+        },
+        "entity.SubscriptionSumFilter": {
+            "description": "Filter for SubscriptionSum result.",
+            "type": "object",
+            "properties": {
+                "end_date": {
+                    "description": "end date",
+                    "type": "string"
+                },
+                "service_name": {
+                    "description": "service name",
+                    "type": "string"
+                },
+                "start_date": {
+                    "description": "start date",
+                    "type": "string"
+                },
+                "user_id": {
+                    "description": "user uuid",
+                    "type": "string"
+                }
+            }
+        },
+        "v1.inSubs": {
+            "description": "inSubs is body input data with subs data.",
+            "type": "object",
+            "required": [
+                "price",
+                "service_name",
+                "start_date",
+                "user_id"
+            ],
+            "properties": {
+                "end_date": {
+                    "description": "end date",
+                    "type": "string",
+                    "example": "08-2025"
+                },
+                "price": {
+                    "description": "price",
+                    "type": "integer",
+                    "example": 400
+                },
+                "service_name": {
+                    "description": "service name",
+                    "type": "string",
+                    "maxLength": 100,
+                    "example": "Yandex Plus"
+                },
+                "start_date": {
+                    "description": "start date",
+                    "type": "string",
+                    "example": "07-2025"
+                },
+                "user_id": {
+                    "description": "user uuid",
+                    "type": "string",
+                    "example": "60601fee-2bf1-4721-ae6f-7636e79a0cba"
+                }
+            }
+        }
+    }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it

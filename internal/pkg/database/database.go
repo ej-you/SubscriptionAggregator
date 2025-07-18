@@ -4,7 +4,6 @@ package database
 import (
 	"fmt"
 	"log"
-	"os"
 	"time"
 
 	"gorm.io/driver/postgres"
@@ -68,7 +67,7 @@ func New(dsn string, options ...Option) (*gorm.DB, error) {
 		return nil, fmt.Errorf("open db connection: %w", err)
 	}
 
-	dbStorage.customLogger.Printf("Process %d successfully connected to DB!", os.Getpid())
+	dbStorage.customLogger.Printf("Successfully connected to DB")
 	return gormDB, nil
 }
 

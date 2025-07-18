@@ -15,7 +15,7 @@ type subsUsecase struct {
 	subsRepoDB repo.SubsRepoDB
 }
 
-func NewBookUsecase(subsRepoDB repo.SubsRepoDB) SubsUsecase {
+func NewSubsUsecase(subsRepoDB repo.SubsRepoDB) SubsUsecase {
 	return &subsUsecase{
 		subsRepoDB: subsRepoDB,
 	}
@@ -54,12 +54,8 @@ func (u *subsUsecase) GetAll() (entity.SubscriptionList, error) {
 	return subsList, errors.Wrap(err, "get all subs")
 }
 
-// GetUserServieSum returns sum of subs prices with given user ID and service name.
-func (u *subsUsecase) GetUserServieSum(userID, serviceName string) (int, error) {
-	subsFilter := entity.Subscription{
-		UserID:      userID,
-		ServiceName: serviceName,
-	}
-	totalPrice, err := u.subsRepoDB.GetSum(&subsFilter)
-	return totalPrice, errors.Wrap(err, "get subs prices sum filtered by user and service")
+// GetSum returns sum of subs prices filtered by filter.
+func (u *subsUsecase) GetSum(filter *entity.SubscriptionSumFilter) (int, error) {
+	totalPrice, err := u.subsRepoDB.GetSum(filter)
+	return totalPrice, errors.Wrap(err, "get subs prices sum")
 }

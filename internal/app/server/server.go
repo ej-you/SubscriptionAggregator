@@ -12,11 +12,12 @@ import (
 	"gorm.io/gorm"
 
 	"SubscriptionAggregator/config"
+	"SubscriptionAggregator/internal/app/errors"
 	"SubscriptionAggregator/internal/app/middleware"
 
-	// httpv1 "SubscriptionAggregator/internal/app/controller/http/v1"
-	// repostorage "SubscriptionAggregator/internal/app/repo/storage"
-	// "SubscriptionAggregator/internal/app/usecase"
+	httpv1 "SubscriptionAggregator/internal/app/controller/http/v1"
+	repopg "SubscriptionAggregator/internal/app/repo/pg"
+	"SubscriptionAggregator/internal/app/usecase"
 
 	"SubscriptionAggregator/internal/pkg/database"
 	"SubscriptionAggregator/internal/pkg/jsonify"
@@ -82,8 +83,8 @@ func New(cfg *config.Config) (Server, error) {
 func (s *httpServer) Run() {
 	// app init
 	s.fiberApp = fiber.New(fiber.Config{
-		AppName: s.cfg.Server.Name,
-		// ErrorHandler:  errors.CustomErrorHandler,
+		AppName:       s.cfg.Server.Name,
+		ErrorHandler:  errors.CustomErrorHandler,
 		JSONEncoder:   s.jsonify.Marshal,
 		JSONDecoder:   s.jsonify.Unmarshal,
 		ServerHeader:  "Download files HTTP API",
@@ -95,18 +96,15 @@ func (s *httpServer) Run() {
 	s.fiberApp.Use(middleware.Recover())
 	s.fiberApp.Use(middleware.Swagger())
 
-	// // create repos
-	// taskRepoStorage := repostorage.NewTaskRepoStorage(s.store)
-	// incompleteTaskRepoStorage := repostorage.NewIncompleteTaskRepoStorage(s.store)
-	// // create usecases
-	// taskUsecase := usecase.NewTaskUsecase(taskRepoStorage, incompleteTaskRepoStorage,
-	// 	s.cfg.MaxTasksLimit, s.cfg.MaxFilesLimit)
-	// // create controllers
-	// taskController := httpv1.NewTaskController(taskUsecase, s.valid,
-	// 	s.cfg.AvailableFiles, s.cfg.MediaPath, s.cfg.MediaURL)
-	// // register endpoints
-	// apiV1 := s.fiberApp.Group("/api/v1")
-	// httpv1.RegisterTaskEndpoints(apiV1.Group("/task"), taskController)
+	// create repos
+	subsRepoDB := repopg.NewSubsRepoDB(s.db)
+	// create usecases
+	subsUsecase := usecase.NewSubsUsecase(subsRepoDB)
+	// create controllers
+	subsController := httpv1.NewSubsController(subsUsecase, s.valid)
+	// register endpoints
+	apiV1 := s.fiberApp.Group("/api/v1")
+	httpv1.RegisterSubsEndpoints(apiV1.Group("/subs"), subsController)
 
 	// start app
 	go func() {

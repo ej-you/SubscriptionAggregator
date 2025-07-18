@@ -80,15 +80,25 @@ func (r *subsRepoPG) GetList() (entity.SubscriptionList, error) {
 	return subsList, nil
 }
 
-// GetSum returns sum of subs prices with given user ID and service name.
-// User ID and service name must be presented.
-func (r *subsRepoPG) GetSum(filter *entity.Subscription) (int, error) {
+// GetSum returns sum of subs prices filtered by given filter.
+func (r *subsRepoPG) GetSum(filter *entity.SubscriptionSumFilter) (int, error) {
 	var prices []int
 
+	tx := r.dbStorage.Model(&entity.Subscription{})
+	if filter.UserID != "" {
+		tx = tx.Where("user_id = ?", filter.UserID)
+	}
+	if filter.ServiceName != "" {
+		tx = tx.Where("service_name = ?", filter.ServiceName)
+	}
+	if filter.StartDate != nil {
+		tx = tx.Where("start_date >= ?::date", filter.StartDate)
+	}
+	if filter.EndDate != nil {
+		tx = tx.Where("end_date <= ?::date", filter.EndDate)
+	}
 	// select prices
-	err := r.dbStorage.Model(&entity.Subscription{}).
-		Where("user_id = ? AND service_name = ?", filter.UserID, filter.ServiceName).
-		Pluck("price", &prices).Error
+	err := tx.Pluck("price", &prices).Error
 	if err != nil {
 		return 0, fmt.Errorf("get sum: %w", err)
 	}
