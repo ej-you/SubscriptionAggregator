@@ -81,6 +81,10 @@ func (r *subsRepoPG) Update(subs *entity.Subscription) (*entity.Subscription, er
 		updates["end_date"] = subs.EndDate
 		subsFromDB.EndDate = subs.EndDate
 	}
+	// if end date after start date
+	if subsFromDB.StartDate.After(*subsFromDB.EndDate) {
+		return nil, fmt.Errorf("%w: end date after start date", errors.ErrValidateData)
+	}
 
 	// if nothing to update
 	if len(updates) == 0 {
@@ -118,21 +122,33 @@ func (r *subsRepoPG) GetList() (entity.SubscriptionList, error) {
 func (r *subsRepoPG) GetSum(filter *entity.SubscriptionSumFilter) (int, error) {
 	var prices []int
 
-	dbSuery := r.dbStorage.Model(&entity.Subscription{})
+	dbQuery := r.dbStorage.Model(&entity.Subscription{})
+	// apply main conditions
 	if filter.UserID != "" {
-		dbSuery = dbSuery.Where("user_id = ?", filter.UserID)
+		dbQuery = dbQuery.Where("user_id = ?", filter.UserID)
 	}
 	if filter.ServiceName != "" {
-		dbSuery = dbSuery.Where("service_name = ?", filter.ServiceName)
+		dbQuery = dbQuery.Where("service_name = ?", filter.ServiceName)
 	}
+
+	dateCond := r.dbStorage.Model(&entity.Subscription{})
+	// collect date condition
 	if filter.StartDate != nil {
-		dbSuery = dbSuery.Where("start_date >= ?::date", filter.StartDate)
+		dateCond = dateCond.Or("start_date <= ?::date AND end_date IS NULL", filter.StartDate)
 	}
 	if filter.EndDate != nil {
-		dbSuery = dbSuery.Where("end_date <= ?::date", filter.EndDate)
+		dateCond = dateCond.Or("end_date = ?::date", filter.EndDate)
 	}
+	if filter.StartDate != nil && filter.EndDate != nil {
+		dateCond = dateCond.Or("start_date >= ?::date AND start_date < ?::date", filter.StartDate, filter.EndDate)
+		dateCond = dateCond.Or("start_date <= ?::date AND end_date >= ?::date", filter.StartDate, filter.EndDate)
+		dateCond = dateCond.Or("end_date >= ?::date AND end_date <= ?::date", filter.StartDate, filter.EndDate)
+	}
+	// connect date condition to main conditions
+	dbQuery = dbQuery.Where(dateCond)
+
 	// select prices
-	err := dbSuery.Pluck("price", &prices).Error
+	err := dbQuery.Pluck("price", &prices).Error
 	if err != nil {
 		return 0, fmt.Errorf("get sum: %w", err)
 	}

@@ -37,11 +37,11 @@ type inSubsUpdate struct {
 // @description inSubSumFilter is query-params with user ans service.
 type inSubSumFilter struct {
 	// service name
-	ServiceName string `query:"service_name,omitempty" validate:"omitempty,max=100" maxLength:"100" example:"Yandex Plus"`
+	ServiceName string `query:"service_name,omitempty" validate:"omitempty,max=100"`
 	// user uuid
-	UserID string `query:"user_id,omitempty" validate:"omitempty,uuid4" example:"60601fee-2bf1-4721-ae6f-7636e79a0cba"`
+	UserID string `query:"user_id,omitempty" validate:"omitempty,uuid4"`
 	// start date
-	StartDate *string `query:"start_date,omitempty" validate:"omitempty" example:"07-2025"`
+	StartDate *string `query:"start_date,omitempty" validate:"omitempty"`
 	// end date
-	EndDate *string `query:"end_date,omitempty" validate:"omitempty" example:"08-2025"`
+	EndDate *string `query:"end_date,omitempty" validate:"omitempty"`
 }

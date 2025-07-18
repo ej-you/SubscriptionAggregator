@@ -51,8 +51,7 @@ func New(cfg *config.Config) (Server, error) {
 	gormDB, err := database.New(cfg.DB.ConnString,
 		database.WithTranslateError(),
 		database.WithIgnoreNotFound(),
-		database.WithDisableColorful(),
-		// database.WithWarnLogLevel(),
+		database.WithWarnLogLevel(),
 		database.WithLogger(logrus.StandardLogger()),
 	)
 	if err != nil {
@@ -87,7 +86,7 @@ func (s *httpServer) Run() {
 		ErrorHandler:  errors.CustomErrorHandler,
 		JSONEncoder:   s.jsonify.Marshal,
 		JSONDecoder:   s.jsonify.Unmarshal,
-		ServerHeader:  "Download files HTTP API",
+		ServerHeader:  "Subscription Aggregator API",
 		StrictRouting: false,
 	})
 
@@ -104,7 +103,7 @@ func (s *httpServer) Run() {
 	subsController := httpv1.NewSubsController(subsUsecase, s.valid)
 	// register endpoints
 	apiV1 := s.fiberApp.Group("/api/v1")
-	httpv1.RegisterSubsEndpoints(apiV1.Group("/subs"), subsController)
+	httpv1.RegisterSubsEndpoints(apiV1, subsController)
 
 	// start app
 	go func() {

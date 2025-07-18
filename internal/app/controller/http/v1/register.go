@@ -6,11 +6,11 @@ import (
 
 // RegisterSubsEndpoints registers all endpoints for subs entity.
 func RegisterSubsEndpoints(router fiber.Router, controller *SubsController) {
-	router.Post("/", controller.Create)
-	router.Get("/:id", controller.GetByID)
-	router.Patch("/:id", controller.Update)
-	router.Delete("/:id", controller.Delete)
-	router.Get("/", controller.GetAll)
+	router.Post("/subs", controller.Create)
+	router.Get("/subs/:id", controller.GetByID)
+	router.Patch("/subs/:id", controller.Update)
+	router.Delete("/subs/:id", controller.Delete)
+	router.Get("/subs", controller.GetAll)
 
-	router.Get("/sum", controller.GetSum)
+	router.Get("/subs-sum", controller.GetSum)
 }

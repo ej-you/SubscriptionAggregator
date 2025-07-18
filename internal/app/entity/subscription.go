@@ -41,6 +41,8 @@ type SubscriptionSumFilter struct {
 
 // @description Sum of subs prices filtered by Filter.
 type SubscriptionSum struct {
+	// filter fields
 	Filter *SubscriptionSumFilter `json:"filter,omitempty"`
-	Sum    int                    `json:"sum"`
+	// result
+	Sum int `json:"sum"`
 }

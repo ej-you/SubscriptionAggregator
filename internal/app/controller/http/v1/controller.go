@@ -64,6 +64,10 @@ func (c *SubsController) Create(ctx *fiber.Ctx) error {
 		if err != nil {
 			return fmt.Errorf("%w: end date: %s", errors.ErrValidateData, err.Error())
 		}
+		// if end date after start date
+		if startDate.After(endDate) {
+			return fmt.Errorf("%w: end date after start date", errors.ErrValidateData)
+		}
 		subs.EndDate = &endDate
 	}
 
@@ -87,7 +91,7 @@ func (c *SubsController) GetByID(ctx *fiber.Ctx) error {
 	pathData := &inPathUUID{}
 	// parse path-params
 	if err := ctx.ParamsParser(pathData); err != nil {
-		return fmt.Errorf("parse body: %w", err)
+		return fmt.Errorf("parse path: %w", err)
 	}
 	// validate parsed data
 	if err := c.valid.Validate(pathData); err != nil {
@@ -116,7 +120,7 @@ func (c *SubsController) Update(ctx *fiber.Ctx) error {
 	pathData := &inPathUUID{}
 	// parse path-params
 	if err := ctx.ParamsParser(pathData); err != nil {
-		return fmt.Errorf("parse body: %w", err)
+		return fmt.Errorf("parse path: %w", err)
 	}
 	// validate parsed data
 	if err := c.valid.Validate(pathData); err != nil {
@@ -131,15 +135,6 @@ func (c *SubsController) Update(ctx *fiber.Ctx) error {
 	if err := c.valid.Validate(bodyData); err != nil {
 		return fmt.Errorf("%w: %s", errors.ErrValidateData, err.Error())
 	}
-
-	// subs := entity.Subscription{
-	// 	ID:          pathData.ID,
-	// 	ServiceName: bodyData.ServiceName,
-	// 	Price:       bodyData.Price,
-	// 	UserID:      bodyData.UserID,
-	// 	StartDate:   bodyData.StartDate,
-	// 	EndDate:     bodyData.EndDate,
-	// }
 
 	subs := entity.Subscription{
 		ID:          pathData.ID,
@@ -184,7 +179,7 @@ func (c *SubsController) Delete(ctx *fiber.Ctx) error {
 	pathData := &inPathUUID{}
 	// parse path-params
 	if err := ctx.ParamsParser(pathData); err != nil {
-		return fmt.Errorf("parse body: %w", err)
+		return fmt.Errorf("parse path: %w", err)
 	}
 	// validate parsed data
 	if err := c.valid.Validate(pathData); err != nil {
@@ -215,17 +210,20 @@ func (c *SubsController) GetAll(ctx *fiber.Ctx) error {
 
 // @summary		Получить суммарную стоимость подписок
 // @description	Получение суммарной стоимости всех подписок за выбранный период с фильтрацией по id пользователя и названию подписки.
-// @router			/subs/sum [get]
+// @router			/subs-sum [get]
 // @id				get-subs-sum
 // @tags			subs-advanced
-// @param			Filter	query		inSubSumFilter	false	"Поля для фильтрации"
-// @success		200		{object}	entity.SubscriptionSum
-// @failure		400		"Невалидный(ые) параметр(ы) запроса"
+// @param			user_id			query		string	false	"UUID пользователя"	example"60601fee-2bf1-4721-ae6f-7636e79a0cba"
+// @param			service_name	query		string	false	"Название сервиса"	example:"Yandex Plus"
+// @param			start_date		query		string	false	"Дата начала"		example:"07-2025"
+// @param			end_date		query		string	false	"Дата окончания"	example:"08-2025"
+// @success		200				{object}	entity.SubscriptionSum
+// @failure		400				"Невалидный(ые) параметр(ы) запроса"
 func (c *SubsController) GetSum(ctx *fiber.Ctx) error {
 	queryData := &inSubSumFilter{}
 	// parse path-params
 	if err := ctx.QueryParser(queryData); err != nil {
-		return fmt.Errorf("parse body: %w", err)
+		return fmt.Errorf("parse query: %w", err)
 	}
 	// validate parsed data
 	if err := c.valid.Validate(queryData); err != nil {
@@ -251,6 +249,12 @@ func (c *SubsController) GetSum(ctx *fiber.Ctx) error {
 			return fmt.Errorf("%w: end date: %s", errors.ErrValidateData, err.Error())
 		}
 		subSumFilter.EndDate = &endDate
+	}
+	if queryData.StartDate != nil && queryData.EndDate != nil {
+		// if end date after start date
+		if subSumFilter.StartDate.After(*subSumFilter.EndDate) {
+			return fmt.Errorf("%w: end date after start date", errors.ErrValidateData)
+		}
 	}
 
 	// get subs

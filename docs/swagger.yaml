@@ -28,8 +28,11 @@ definitions:
     description: Sum of subs prices filtered by Filter.
     properties:
       filter:
-        $ref: '#/definitions/entity.SubscriptionSumFilter'
+        allOf:
+        - $ref: '#/definitions/entity.SubscriptionSumFilter'
+        description: filter fields
       sum:
+        description: result
         type: integer
     type: object
   entity.SubscriptionSumFilter:
@@ -144,6 +147,38 @@ paths:
       summary: Создать запись подписки
       tags:
       - subs-crudl
+  /subs-sum:
+    get:
+      description: Получение суммарной стоимости всех подписок за выбранный период
+        с фильтрацией по id пользователя и названию подписки.
+      operationId: get-subs-sum
+      parameters:
+      - description: UUID пользователя
+        in: query
+        name: user_id
+        type: string
+      - description: Название сервиса
+        in: query
+        name: service_name
+        type: string
+      - description: Дата начала
+        in: query
+        name: start_date
+        type: string
+      - description: Дата окончания
+        in: query
+        name: end_date
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.SubscriptionSum'
+        "400":
+          description: Невалидный(ые) параметр(ы) запроса
+      summary: Получить суммарную стоимость подписок
+      tags:
+      - subs-advanced
   /subs/{id}:
     delete:
       description: Удаление записи подписки по её ID.
@@ -210,43 +245,6 @@ paths:
       summary: Обновить запись подписки
       tags:
       - subs-crudl
-  /subs/sum:
-    get:
-      description: Получение суммарной стоимости всех подписок за выбранный период
-        с фильтрацией по id пользователя и названию подписки.
-      operationId: get-subs-sum
-      parameters:
-      - description: end date
-        example: 08-2025
-        in: query
-        name: endDate
-        type: string
-      - description: service name
-        example: Yandex Plus
-        in: query
-        maxLength: 100
-        name: serviceName
-        type: string
-      - description: start date
-        example: 07-2025
-        in: query
-        name: startDate
-        type: string
-      - description: user uuid
-        example: 60601fee-2bf1-4721-ae6f-7636e79a0cba
-        in: query
-        name: userID
-        type: string
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/entity.SubscriptionSum'
-        "400":
-          description: Невалидный(ые) параметр(ы) запроса
-      summary: Получить суммарную стоимость подписок
-      tags:
-      - subs-advanced
 produces:
 - application/json
 schemes:

@@ -69,7 +69,7 @@
                 }
             }
         },
-        "/subs/sum": {
+        "/subs-sum": {
             "get": {
                 "description": "Получение суммарной стоимости всех подписок за выбранный период с фильтрацией по id пользователя и названию подписки.",
                 "tags": [
@@ -80,31 +80,26 @@
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "08-2025",
-                        "description": "end date",
-                        "name": "endDate",
-                        "in": "query"
-                    },
-                    {
-                        "maxLength": 100,
-                        "type": "string",
-                        "example": "Yandex Plus",
-                        "description": "service name",
-                        "name": "serviceName",
+                        "description": "UUID пользователя",
+                        "name": "user_id",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "example": "07-2025",
-                        "description": "start date",
-                        "name": "startDate",
+                        "description": "Название сервиса",
+                        "name": "service_name",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "example": "60601fee-2bf1-4721-ae6f-7636e79a0cba",
-                        "description": "user uuid",
-                        "name": "userID",
+                        "description": "Дата начала",
+                        "name": "start_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Дата окончания",
+                        "name": "end_date",
                         "in": "query"
                     }
                 ],
@@ -256,9 +251,15 @@
             "type": "object",
             "properties": {
                 "filter": {
-                    "$ref": "#/definitions/entity.SubscriptionSumFilter"
+                    "description": "filter fields",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/entity.SubscriptionSumFilter"
+                        }
+                    ]
                 },
                 "sum": {
+                    "description": "result",
                     "type": "integer"
                 }
             }
