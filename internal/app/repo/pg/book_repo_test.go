@@ -81,7 +81,7 @@ func TestSubs_Update(t *testing.T) {
 
 	updatedSubs := entity.Subscription{
 		ID:          _subsUUID,
-		ServiceName: "Kinopisk",
+		ServiceName: "Kinopoisk",
 		Price:       350,
 		UserID:      "60601fee-2bf1-4721-ae6f-7636e79a0cba",
 		StartDate:   time.Now().UTC(),
@@ -109,6 +109,21 @@ func TestSubs_UpdateUnexisting(t *testing.T) {
 	require.ErrorIs(t, err, errors.ErrNotFound)
 
 	t.Log("Unexisting subs")
+}
+
+func TestSubs_GetSum(t *testing.T) {
+	t.Log("Get sum of prices")
+
+	subs := entity.Subscription{
+		UserID:      _userUUID,
+		ServiceName: "Kinopoisk",
+	}
+
+	total, err := _repo.GetSum(&subs)
+	require.NoError(t, err)
+
+	t.Logf("Total subs prices: %v", total)
+	require.Equal(t, total, 350)
 }
 
 func TestSubs_Delete(t *testing.T) {

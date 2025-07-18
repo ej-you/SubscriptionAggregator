@@ -13,4 +13,5 @@ type SubsRepoDB interface {
 	Update(subs *entity.Subscription) error
 	Delete(id string) error
 	GetList() (entity.SubscriptionList, error)
+	GetSum(filter *entity.Subscription) (int, error)
 }

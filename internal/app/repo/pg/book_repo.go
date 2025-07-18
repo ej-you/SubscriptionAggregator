@@ -79,3 +79,24 @@ func (r *subsRepoPG) GetList() (entity.SubscriptionList, error) {
 	}
 	return subsList, nil
 }
+
+// GetSum returns sum of subs prices with given user ID and service name.
+// User ID and service name must be presented.
+func (r *subsRepoPG) GetSum(filter *entity.Subscription) (int, error) {
+	var prices []int
+
+	// select prices
+	err := r.dbStorage.Model(&entity.Subscription{}).
+		Where("user_id = ? AND service_name = ?", filter.UserID, filter.ServiceName).
+		Pluck("price", &prices).Error
+	if err != nil {
+		return 0, fmt.Errorf("get sum: %w", err)
+	}
+
+	// sum gotten prices
+	var totalPrice int
+	for _, price := range prices {
+		totalPrice += price
+	}
+	return totalPrice, nil
+}
