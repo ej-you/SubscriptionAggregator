@@ -23,7 +23,7 @@ var (
 	_repo repo.SubsRepoDB
 
 	_subsUUID = uuid.NewString()
-	_userUUID = "60601fee-2bf1-4721-ae6f-7636e79a0cba"
+	_userUUID = "44601fee-2bf1-4721-ae6f-7636e79a0cba"
 )
 
 func TestMain(m *testing.M) {
@@ -48,7 +48,7 @@ func TestSubs_Create(t *testing.T) {
 		ID:          _subsUUID,
 		ServiceName: "Yandex Plus",
 		Price:       400,
-		UserID:      "60601fee-2bf1-4721-ae6f-7636e79a0cba",
+		UserID:      _userUUID,
 		StartDate:   &startDate,
 	}
 
@@ -85,7 +85,7 @@ func TestSubs_Update(t *testing.T) {
 		ID:          _subsUUID,
 		ServiceName: "Kinopoisk",
 		Price:       350,
-		UserID:      "60601fee-2bf1-4721-ae6f-7636e79a0cba",
+		UserID:      _userUUID,
 		StartDate:   &startDate,
 	}
 
@@ -103,7 +103,7 @@ func TestSubs_UpdateUnexisting(t *testing.T) {
 		ID:          uuid.NewString(),
 		ServiceName: "Kion",
 		Price:       500,
-		UserID:      "60601fee-2bf1-4721-ae6f-7636e79a0cba",
+		UserID:      _userUUID,
 		StartDate:   &startDate,
 	}
 

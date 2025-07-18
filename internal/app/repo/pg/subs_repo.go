@@ -61,7 +61,7 @@ func (r *subsRepoPG) Update(subs *entity.Subscription) (*entity.Subscription, er
 	// map with fields to update
 	updates := make(map[string]any)
 	// append non-nil new field values to map
-	if len(subs.ServiceName) != 0 {
+	if subs.ServiceName != "" {
 		updates["service_name"] = subs.ServiceName
 		subsFromDB.ServiceName = subs.ServiceName
 	}
@@ -69,7 +69,7 @@ func (r *subsRepoPG) Update(subs *entity.Subscription) (*entity.Subscription, er
 		updates["price"] = subs.Price
 		subsFromDB.Price = subs.Price
 	}
-	if len(subs.UserID) != 0 {
+	if subs.UserID != "" {
 		updates["user_id"] = subs.UserID
 		subsFromDB.UserID = subs.UserID
 	}
@@ -81,9 +81,11 @@ func (r *subsRepoPG) Update(subs *entity.Subscription) (*entity.Subscription, er
 		updates["end_date"] = subs.EndDate
 		subsFromDB.EndDate = subs.EndDate
 	}
-	// if end date after start date
-	if subsFromDB.StartDate.After(*subsFromDB.EndDate) {
-		return nil, fmt.Errorf("%w: end date after start date", errors.ErrValidateData)
+	if subs.StartDate != nil && subs.EndDate != nil {
+		// if end date after start date
+		if subsFromDB.StartDate.After(*subsFromDB.EndDate) {
+			return nil, fmt.Errorf("%w: end date after start date", errors.ErrValidateData)
+		}
 	}
 
 	// if nothing to update
@@ -140,9 +142,10 @@ func (r *subsRepoPG) GetSum(filter *entity.SubscriptionSumFilter) (int, error) {
 		dateCond = dateCond.Or("end_date = ?::date", filter.EndDate)
 	}
 	if filter.StartDate != nil && filter.EndDate != nil {
-		dateCond = dateCond.Or("start_date >= ?::date AND start_date < ?::date", filter.StartDate, filter.EndDate)
-		dateCond = dateCond.Or("start_date <= ?::date AND end_date >= ?::date", filter.StartDate, filter.EndDate)
-		dateCond = dateCond.Or("end_date >= ?::date AND end_date <= ?::date", filter.StartDate, filter.EndDate)
+		dateCond = dateCond.Or("start_date >= ?::date AND start_date < ?::date",
+			filter.StartDate, filter.EndDate).
+			Or("start_date <= ?::date AND end_date >= ?::date", filter.StartDate, filter.EndDate).
+			Or("end_date >= ?::date AND end_date <= ?::date", filter.StartDate, filter.EndDate)
 	}
 	// connect date condition to main conditions
 	dbQuery = dbQuery.Where(dateCond)

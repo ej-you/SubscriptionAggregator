@@ -81,7 +81,10 @@ linters:
       - linters: # more readable
           - goconst
         path: internal/app/controller/http/v1/register\.go
-        text: "string `/:id` has 3 occurrences, make it a constant"
+        text: "string `.*?` has 3 occurrences, make it a constant"
+      - linters: # more readable
+          - goconst
+        path: internal/app/repo/pg/subs_repo\.go
       - linters: # struct tags
           - lll
         path: internal/app/controller/http/v1/data_in\.go
