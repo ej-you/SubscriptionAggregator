@@ -37,9 +37,9 @@ func (u *subsUsecase) GetByID(id string) (*entity.Subscription, error) {
 
 // Update updates all subs fields with given data by giving book ID.
 // ID and all required fields must be presented.
-func (u *subsUsecase) Update(subs *entity.Subscription) error {
-	err := u.subsRepoDB.Update(subs)
-	return errors.Wrap(err, "update subs")
+func (u *subsUsecase) Update(subs *entity.Subscription) (*entity.Subscription, error) {
+	subs, err := u.subsRepoDB.Update(subs)
+	return subs, errors.Wrap(err, "update subs")
 }
 
 // Delete deletes subs by its ID.

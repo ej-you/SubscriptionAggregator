@@ -48,8 +48,8 @@ definitions:
         description: user uuid
         type: string
     type: object
-  v1.inSubs:
-    description: inSubs is body input data with subs data.
+  v1.inSubsCreate:
+    description: inSubsCreate is body input data with subs data.
     properties:
       end_date:
         description: end date
@@ -77,6 +77,31 @@ definitions:
     - service_name
     - start_date
     - user_id
+    type: object
+  v1.inSubsUpdate:
+    description: inSubsUpdate is body input data with optional subs data.
+    properties:
+      end_date:
+        description: end date
+        example: 08-2025
+        type: string
+      price:
+        description: price
+        example: 400
+        type: integer
+      service_name:
+        description: service name
+        example: Yandex Plus
+        maxLength: 100
+        type: string
+      start_date:
+        description: start date
+        example: 07-2025
+        type: string
+      user_id:
+        description: user uuid
+        example: 60601fee-2bf1-4721-ae6f-7636e79a0cba
+        type: string
     type: object
 host: 127.0.0.1:8000
 info:
@@ -108,7 +133,7 @@ paths:
         name: Sub
         required: true
         schema:
-          $ref: '#/definitions/v1.inSubs'
+          $ref: '#/definitions/v1.inSubsCreate'
       responses:
         "201":
           description: Created
@@ -172,7 +197,7 @@ paths:
         name: Sub
         required: true
         schema:
-          $ref: '#/definitions/v1.inSubs'
+          $ref: '#/definitions/v1.inSubsUpdate'
       responses:
         "200":
           description: OK

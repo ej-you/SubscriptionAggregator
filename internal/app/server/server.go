@@ -52,7 +52,7 @@ func New(cfg *config.Config) (Server, error) {
 		database.WithTranslateError(),
 		database.WithIgnoreNotFound(),
 		database.WithDisableColorful(),
-		database.WithWarnLogLevel(),
+		// database.WithWarnLogLevel(),
 		database.WithLogger(logrus.StandardLogger()),
 	)
 	if err != nil {

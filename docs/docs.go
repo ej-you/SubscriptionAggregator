@@ -55,7 +55,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/v1.inSubs"
+                            "$ref": "#/definitions/v1.inSubsCreate"
                         }
                     }
                 ],
@@ -202,7 +202,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/v1.inSubs"
+                            "$ref": "#/definitions/v1.inSubsUpdate"
                         }
                     }
                 ],
@@ -288,8 +288,8 @@ const docTemplate = `{
                 }
             }
         },
-        "v1.inSubs": {
-            "description": "inSubs is body input data with subs data.",
+        "v1.inSubsCreate": {
+            "description": "inSubsCreate is body input data with subs data.",
             "type": "object",
             "required": [
                 "price",
@@ -297,6 +297,38 @@ const docTemplate = `{
                 "start_date",
                 "user_id"
             ],
+            "properties": {
+                "end_date": {
+                    "description": "end date",
+                    "type": "string",
+                    "example": "08-2025"
+                },
+                "price": {
+                    "description": "price",
+                    "type": "integer",
+                    "example": 400
+                },
+                "service_name": {
+                    "description": "service name",
+                    "type": "string",
+                    "maxLength": 100,
+                    "example": "Yandex Plus"
+                },
+                "start_date": {
+                    "description": "start date",
+                    "type": "string",
+                    "example": "07-2025"
+                },
+                "user_id": {
+                    "description": "user uuid",
+                    "type": "string",
+                    "example": "60601fee-2bf1-4721-ae6f-7636e79a0cba"
+                }
+            }
+        },
+        "v1.inSubsUpdate": {
+            "description": "inSubsUpdate is body input data with optional subs data.",
+            "type": "object",
             "properties": {
                 "end_date": {
                     "description": "end date",

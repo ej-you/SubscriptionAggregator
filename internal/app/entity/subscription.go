@@ -15,7 +15,7 @@ type Subscription struct {
 	// user uuid
 	UserID string `json:"user_id" gorm:"user_id;not null"`
 	// start date
-	StartDate time.Time `json:"start_date" gorm:"start_date;not null"`
+	StartDate *time.Time `json:"start_date" gorm:"start_date;not null"`
 	// end date
 	EndDate *time.Time `json:"end_date,omitempty" gorm:"end_date"`
 }

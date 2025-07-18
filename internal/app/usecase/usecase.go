@@ -9,7 +9,7 @@ import (
 type SubsUsecase interface {
 	Create(subs *entity.Subscription) error
 	GetByID(id string) (*entity.Subscription, error)
-	Update(subs *entity.Subscription) error
+	Update(subs *entity.Subscription) (*entity.Subscription, error)
 	Delete(id string) error
 	GetAll() (entity.SubscriptionList, error)
 	GetSum(filter *entity.SubscriptionSumFilter) (int, error)

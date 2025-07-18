@@ -10,6 +10,7 @@ import (
 	"SubscriptionAggregator/internal/app/entity"
 	"SubscriptionAggregator/internal/app/errors"
 	"SubscriptionAggregator/internal/app/usecase"
+	"SubscriptionAggregator/internal/pkg/utils"
 	"SubscriptionAggregator/internal/pkg/validator"
 )
 
@@ -32,11 +33,11 @@ func NewSubsController(subsUC usecase.SubsUsecase, valid validator.Validator) *S
 // @router			/subs [post]
 // @id				create-sub
 // @tags			subs-crudl
-// @param			Sub	body		inSubs	true	"Информация о подписке"
+// @param			Sub	body		inSubsCreate	true	"Информация о подписке"
 // @success		201	{object}	entity.Subscription
 // @failure		400	"Невалидное тело запроса"
 func (c *SubsController) Create(ctx *fiber.Ctx) error {
-	bodyData := &inSubs{}
+	bodyData := &inSubsCreate{}
 	// parse body
 	if err := ctx.BodyParser(bodyData); err != nil {
 		return fmt.Errorf("parse body: %w", err)
@@ -50,9 +51,22 @@ func (c *SubsController) Create(ctx *fiber.Ctx) error {
 		ServiceName: bodyData.ServiceName,
 		Price:       bodyData.Price,
 		UserID:      bodyData.UserID,
-		StartDate:   bodyData.StartDate,
-		EndDate:     bodyData.EndDate,
 	}
+	// parse start date
+	startDate, err := utils.ParseDate(bodyData.StartDate)
+	if err != nil {
+		return fmt.Errorf("%w: start date: %s", errors.ErrValidateData, err.Error())
+	}
+	subs.StartDate = &startDate
+	// parse end date if it is presented
+	if bodyData.EndDate != nil {
+		endDate, err := utils.ParseDate(*bodyData.EndDate)
+		if err != nil {
+			return fmt.Errorf("%w: end date: %s", errors.ErrValidateData, err.Error())
+		}
+		subs.EndDate = &endDate
+	}
+
 	// create subs
 	if err := c.subsUC.Create(&subs); err != nil {
 		return err
@@ -93,8 +107,8 @@ func (c *SubsController) GetByID(ctx *fiber.Ctx) error {
 // @router			/subs/{id} [patch]
 // @id				update-sub
 // @tags			subs-crudl
-// @param			id	path		string	true	"UUID подписки"
-// @param			Sub	body		inSubs	true	"Информация о подписке"
+// @param			id	path		string			true	"UUID подписки"
+// @param			Sub	body		inSubsUpdate	true	"Информация о подписке"
 // @success		200	{object}	entity.Subscription
 // @failure		400	"Невалидный параметр или тело запроса"
 // @failure		404	"Подписка не найдена"
@@ -108,7 +122,7 @@ func (c *SubsController) Update(ctx *fiber.Ctx) error {
 	if err := c.valid.Validate(pathData); err != nil {
 		return fmt.Errorf("%w: %s", errors.ErrValidateData, err.Error())
 	}
-	bodyData := &inSubs{}
+	bodyData := &inSubsUpdate{}
 	// parse body
 	if err := ctx.BodyParser(bodyData); err != nil {
 		return fmt.Errorf("parse body: %w", err)
@@ -118,20 +132,44 @@ func (c *SubsController) Update(ctx *fiber.Ctx) error {
 		return fmt.Errorf("%w: %s", errors.ErrValidateData, err.Error())
 	}
 
+	// subs := entity.Subscription{
+	// 	ID:          pathData.ID,
+	// 	ServiceName: bodyData.ServiceName,
+	// 	Price:       bodyData.Price,
+	// 	UserID:      bodyData.UserID,
+	// 	StartDate:   bodyData.StartDate,
+	// 	EndDate:     bodyData.EndDate,
+	// }
+
 	subs := entity.Subscription{
 		ID:          pathData.ID,
 		ServiceName: bodyData.ServiceName,
 		Price:       bodyData.Price,
 		UserID:      bodyData.UserID,
-		StartDate:   bodyData.StartDate,
-		EndDate:     bodyData.EndDate,
+	}
+	// parse start date if it is presented
+	if bodyData.StartDate != nil {
+		startDate, err := utils.ParseDate(*bodyData.StartDate)
+		if err != nil {
+			return fmt.Errorf("%w: start date: %s", errors.ErrValidateData, err.Error())
+		}
+		subs.StartDate = &startDate
+	}
+	// parse end date if it is presented
+	if bodyData.EndDate != nil {
+		endDate, err := utils.ParseDate(*bodyData.EndDate)
+		if err != nil {
+			return fmt.Errorf("%w: end date: %s", errors.ErrValidateData, err.Error())
+		}
+		subs.EndDate = &endDate
 	}
 
 	// update subs
-	if err := c.subsUC.Update(&subs); err != nil {
+	updatedSubs, err := c.subsUC.Update(&subs)
+	if err != nil {
 		return err
 	}
-	return ctx.Status(fiber.StatusOK).JSON(subs)
+	return ctx.Status(fiber.StatusOK).JSON(updatedSubs)
 }
 
 // @summary		Удалить запись подписки
@@ -197,9 +235,24 @@ func (c *SubsController) GetSum(ctx *fiber.Ctx) error {
 	subSumFilter := entity.SubscriptionSumFilter{
 		ServiceName: queryData.ServiceName,
 		UserID:      queryData.UserID,
-		StartDate:   queryData.StartDate,
-		EndDate:     queryData.EndDate,
 	}
+	// parse start date if it is presented
+	if queryData.StartDate != nil {
+		startDate, err := utils.ParseDate(*queryData.StartDate)
+		if err != nil {
+			return fmt.Errorf("%w: start date: %s", errors.ErrValidateData, err.Error())
+		}
+		subSumFilter.StartDate = &startDate
+	}
+	// parse end date if it is presented
+	if queryData.EndDate != nil {
+		endDate, err := utils.ParseDate(*queryData.EndDate)
+		if err != nil {
+			return fmt.Errorf("%w: end date: %s", errors.ErrValidateData, err.Error())
+		}
+		subSumFilter.EndDate = &endDate
+	}
+
 	// get subs
 	subsSum, err := c.subsUC.GetSum(&subSumFilter)
 	if err != nil {

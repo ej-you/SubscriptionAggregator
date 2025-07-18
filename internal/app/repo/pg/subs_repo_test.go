@@ -43,12 +43,13 @@ func TestMain(m *testing.M) {
 func TestSubs_Create(t *testing.T) {
 	t.Log("Create new subs")
 
+	startDate := time.Now().UTC()
 	newSubs := entity.Subscription{
 		ID:          _subsUUID,
 		ServiceName: "Yandex Plus",
 		Price:       400,
 		UserID:      "60601fee-2bf1-4721-ae6f-7636e79a0cba",
-		StartDate:   time.Now().UTC(),
+		StartDate:   &startDate,
 	}
 
 	err := _repo.Create(&newSubs)
@@ -79,15 +80,16 @@ func TestSubs_GetList(t *testing.T) {
 func TestSubs_Update(t *testing.T) {
 	t.Log("Update subs")
 
-	updatedSubs := entity.Subscription{
+	startDate := time.Now().UTC()
+	updateValues := entity.Subscription{
 		ID:          _subsUUID,
 		ServiceName: "Kinopoisk",
 		Price:       350,
 		UserID:      "60601fee-2bf1-4721-ae6f-7636e79a0cba",
-		StartDate:   time.Now().UTC(),
+		StartDate:   &startDate,
 	}
 
-	err := _repo.Update(&updatedSubs)
+	updatedSubs, err := _repo.Update(&updateValues)
 	require.NoError(t, err)
 
 	t.Logf("Updated subs: %+v", updatedSubs)
@@ -96,19 +98,34 @@ func TestSubs_Update(t *testing.T) {
 func TestSubs_UpdateUnexisting(t *testing.T) {
 	t.Log("Try to update unexisting subs")
 
-	updatedSubs := entity.Subscription{
+	startDate := time.Now().UTC()
+	updateValues := entity.Subscription{
 		ID:          uuid.NewString(),
 		ServiceName: "Kion",
 		Price:       500,
 		UserID:      "60601fee-2bf1-4721-ae6f-7636e79a0cba",
-		StartDate:   time.Now().UTC(),
+		StartDate:   &startDate,
 	}
 
-	err := _repo.Update(&updatedSubs)
+	_, err := _repo.Update(&updateValues)
 	require.Error(t, err)
 	require.ErrorIs(t, err, errors.ErrNotFound)
 
 	t.Log("Unexisting subs")
+}
+
+func TestSubs_UpdateOneField(t *testing.T) {
+	t.Log("Update just one subs field")
+
+	updateValues := entity.Subscription{
+		ID:          _subsUUID,
+		ServiceName: "Ivi",
+	}
+
+	updatedSubs, err := _repo.Update(&updateValues)
+	require.NoError(t, err)
+
+	t.Logf("Updated subs: %+v", updatedSubs)
 }
 
 func TestSubs_GetSum(t *testing.T) {
@@ -116,7 +133,7 @@ func TestSubs_GetSum(t *testing.T) {
 
 	subs := entity.SubscriptionSumFilter{
 		UserID:      _userUUID,
-		ServiceName: "Kinopoisk",
+		ServiceName: "Ivi",
 	}
 
 	total, err := _repo.GetSum(&subs)

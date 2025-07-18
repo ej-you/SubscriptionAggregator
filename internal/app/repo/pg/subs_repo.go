@@ -49,17 +49,51 @@ func (r *subsRepoPG) GetByID(id string) (*entity.Subscription, error) {
 	return subs, nil
 }
 
-// Update updates all subscription fields with given data by giving subs id.
-func (r *subsRepoPG) Update(subs *entity.Subscription) error {
-	// check that given subs exists
-	if _, err := r.GetByID(subs.ID); err != nil {
-		return fmt.Errorf("update: %w", err)
+// Update updates subscription.
+// It selects subs by given ID and replace all old values (from DB) to new (given).
+// It returns full filled updated subs.
+func (r *subsRepoPG) Update(subs *entity.Subscription) (*entity.Subscription, error) {
+	// get subs by given ID
+	subsFromDB, err := r.GetByID(subs.ID)
+	if err != nil {
+		return nil, fmt.Errorf("update: %w", err)
+	}
+	// map with fields to update
+	updates := make(map[string]any)
+	// append non-nil new field values to map
+	if len(subs.ServiceName) != 0 {
+		updates["service_name"] = subs.ServiceName
+		subsFromDB.ServiceName = subs.ServiceName
+	}
+	if subs.Price != 0 {
+		updates["price"] = subs.Price
+		subsFromDB.Price = subs.Price
+	}
+	if len(subs.UserID) != 0 {
+		updates["user_id"] = subs.UserID
+		subsFromDB.UserID = subs.UserID
+	}
+	if subs.StartDate != nil {
+		updates["start_date"] = subs.StartDate
+		subsFromDB.StartDate = subs.StartDate
+	}
+	if subs.EndDate != nil {
+		updates["end_date"] = subs.EndDate
+		subsFromDB.EndDate = subs.EndDate
+	}
+
+	// if nothing to update
+	if len(updates) == 0 {
+		return subsFromDB, nil
 	}
 	// update subs
-	if err := r.dbStorage.Save(subs).Error; err != nil {
-		return fmt.Errorf("update: %w", err)
+	err = r.dbStorage.Model(&entity.Subscription{}).
+		Where("id = ?", subs.ID).
+		Updates(updates).Error
+	if err != nil {
+		return nil, fmt.Errorf("update: %w", err)
 	}
-	return nil
+	return subsFromDB, nil
 }
 
 // Delete deletes subscription by its ID.
