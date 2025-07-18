@@ -114,7 +114,7 @@ func TestSubs_UpdateUnexisting(t *testing.T) {
 func TestSubs_GetSum(t *testing.T) {
 	t.Log("Get sum of prices")
 
-	subs := entity.Subscription{
+	subs := entity.SubscriptionSumFilter{
 		UserID:      _userUUID,
 		ServiceName: "Kinopoisk",
 	}
