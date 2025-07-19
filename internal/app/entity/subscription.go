@@ -3,7 +3,6 @@ package entity
 
 import "time"
 
-// Subscription model.
 // @description Subscription object
 type Subscription struct {
 	// subscription uuid
@@ -26,6 +25,22 @@ func (Subscription) TableName() string {
 
 // Subscription list.
 type SubscriptionList []Subscription
+
+// @description Subscription object variant for update it.
+type SubscriptionUpdate struct {
+	// subscription uuid
+	ID string `json:"id" gorm:"id;primaryKey;type:uuid"`
+	// service name
+	ServiceName *string `json:"service_name" gorm:"service_name"`
+	// price
+	Price *int `json:"price" gorm:"price"`
+	// user uuid
+	UserID *string `json:"user_id" gorm:"user_id"`
+	// start date
+	StartDate *time.Time `json:"start_date" gorm:"start_date"`
+	// end date
+	EndDate *time.Time `json:"end_date" gorm:"end_date"`
+}
 
 // @description Filter for SubscriptionSum result.
 type SubscriptionSumFilter struct {

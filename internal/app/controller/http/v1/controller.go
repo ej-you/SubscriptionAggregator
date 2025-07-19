@@ -10,7 +10,6 @@ import (
 	"SubscriptionAggregator/internal/app/entity"
 	"SubscriptionAggregator/internal/app/errors"
 	"SubscriptionAggregator/internal/app/usecase"
-	"SubscriptionAggregator/internal/pkg/utils"
 	"SubscriptionAggregator/internal/pkg/validator"
 )
 
@@ -46,31 +45,18 @@ func (c *SubsController) Create(ctx *fiber.Ctx) error {
 	if err := c.valid.Validate(bodyData); err != nil {
 		return fmt.Errorf("%w: %s", errors.ErrValidateData, err.Error())
 	}
+	// parse dates
+	if err := bodyData.ParseDates(); err != nil {
+		return fmt.Errorf("%w: %s", errors.ErrValidateData, err.Error())
+	}
 
 	subs := entity.Subscription{
 		ServiceName: bodyData.ServiceName,
 		Price:       bodyData.Price,
 		UserID:      bodyData.UserID,
+		StartDate:   bodyData.StartDateParsed,
+		EndDate:     bodyData.EndDateParsed,
 	}
-	// parse start date
-	startDate, err := utils.ParseDate(bodyData.StartDate)
-	if err != nil {
-		return fmt.Errorf("%w: start date: %s", errors.ErrValidateData, err.Error())
-	}
-	subs.StartDate = &startDate
-	// parse end date if it is presented
-	if bodyData.EndDate != nil {
-		endDate, err := utils.ParseDate(*bodyData.EndDate)
-		if err != nil {
-			return fmt.Errorf("%w: end date: %s", errors.ErrValidateData, err.Error())
-		}
-		// if end date after start date
-		if startDate.After(endDate) {
-			return fmt.Errorf("%w: end date after start date", errors.ErrValidateData)
-		}
-		subs.EndDate = &endDate
-	}
-
 	// create subs
 	if err := c.subsUC.Create(&subs); err != nil {
 		return err
@@ -135,30 +121,19 @@ func (c *SubsController) Update(ctx *fiber.Ctx) error {
 	if err := c.valid.Validate(bodyData); err != nil {
 		return fmt.Errorf("%w: %s", errors.ErrValidateData, err.Error())
 	}
+	// parse dates
+	if err := bodyData.ParseDates(); err != nil {
+		return fmt.Errorf("%w: %s", errors.ErrValidateData, err.Error())
+	}
 
-	subs := entity.Subscription{
+	subs := entity.SubscriptionUpdate{
 		ID:          pathData.ID,
 		ServiceName: bodyData.ServiceName,
 		Price:       bodyData.Price,
 		UserID:      bodyData.UserID,
+		StartDate:   bodyData.StartDateParsed,
+		EndDate:     bodyData.EndDateParsed,
 	}
-	// parse start date if it is presented
-	if bodyData.StartDate != nil {
-		startDate, err := utils.ParseDate(*bodyData.StartDate)
-		if err != nil {
-			return fmt.Errorf("%w: start date: %s", errors.ErrValidateData, err.Error())
-		}
-		subs.StartDate = &startDate
-	}
-	// parse end date if it is presented
-	if bodyData.EndDate != nil {
-		endDate, err := utils.ParseDate(*bodyData.EndDate)
-		if err != nil {
-			return fmt.Errorf("%w: end date: %s", errors.ErrValidateData, err.Error())
-		}
-		subs.EndDate = &endDate
-	}
-
 	// update subs
 	updatedSubs, err := c.subsUC.Update(&subs)
 	if err != nil {
@@ -229,34 +204,17 @@ func (c *SubsController) GetSum(ctx *fiber.Ctx) error {
 	if err := c.valid.Validate(queryData); err != nil {
 		return fmt.Errorf("%w: %s", errors.ErrValidateData, err.Error())
 	}
+	// parse dates
+	if err := queryData.ParseDates(); err != nil {
+		return fmt.Errorf("%w: %s", errors.ErrValidateData, err.Error())
+	}
 
 	subSumFilter := entity.SubscriptionSumFilter{
 		ServiceName: queryData.ServiceName,
 		UserID:      queryData.UserID,
+		StartDate:   queryData.StartDateParsed,
+		EndDate:     queryData.EndDateParsed,
 	}
-	// parse start date if it is presented
-	if queryData.StartDate != nil {
-		startDate, err := utils.ParseDate(*queryData.StartDate)
-		if err != nil {
-			return fmt.Errorf("%w: start date: %s", errors.ErrValidateData, err.Error())
-		}
-		subSumFilter.StartDate = &startDate
-	}
-	// parse end date if it is presented
-	if queryData.EndDate != nil {
-		endDate, err := utils.ParseDate(*queryData.EndDate)
-		if err != nil {
-			return fmt.Errorf("%w: end date: %s", errors.ErrValidateData, err.Error())
-		}
-		subSumFilter.EndDate = &endDate
-	}
-	if queryData.StartDate != nil && queryData.EndDate != nil {
-		// if end date after start date
-		if subSumFilter.StartDate.After(*subSumFilter.EndDate) {
-			return fmt.Errorf("%w: end date after start date", errors.ErrValidateData)
-		}
-	}
-
 	// get subs
 	subsSum, err := c.subsUC.GetSum(&subSumFilter)
 	if err != nil {

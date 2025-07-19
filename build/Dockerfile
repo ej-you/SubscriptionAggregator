@@ -31,9 +31,10 @@ FROM alpine:3.21 AS run
 
 WORKDIR /app
 
-# copy compiled app and migrator files, files for swagger and migrations
+# copy compiled app and migrator files
 COPY --from=build /go/src/app .
 COPY --from=build /go/src/migrator .
+# copy migrations and files for swagger
 COPY ./migrations ./migrations
 COPY ./docs ./docs
 

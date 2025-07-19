@@ -80,12 +80,14 @@ func TestSubs_GetList(t *testing.T) {
 func TestSubs_Update(t *testing.T) {
 	t.Log("Update subs")
 
+	serviceName := "Kinopoisk"
+	price := 350
 	startDate := time.Now().UTC()
-	updateValues := entity.Subscription{
+	updateValues := entity.SubscriptionUpdate{
 		ID:          _subsUUID,
-		ServiceName: "Kinopoisk",
-		Price:       350,
-		UserID:      _userUUID,
+		ServiceName: &serviceName,
+		Price:       &price,
+		UserID:      &_userUUID,
 		StartDate:   &startDate,
 	}
 
@@ -98,12 +100,14 @@ func TestSubs_Update(t *testing.T) {
 func TestSubs_UpdateUnexisting(t *testing.T) {
 	t.Log("Try to update unexisting subs")
 
+	serviceName := "Kinopoisk"
+	price := 350
 	startDate := time.Now().UTC()
-	updateValues := entity.Subscription{
+	updateValues := entity.SubscriptionUpdate{
 		ID:          uuid.NewString(),
-		ServiceName: "Kion",
-		Price:       500,
-		UserID:      _userUUID,
+		ServiceName: &serviceName,
+		Price:       &price,
+		UserID:      &_userUUID,
 		StartDate:   &startDate,
 	}
 
@@ -117,9 +121,10 @@ func TestSubs_UpdateUnexisting(t *testing.T) {
 func TestSubs_UpdateOneField(t *testing.T) {
 	t.Log("Update just one subs field")
 
-	updateValues := entity.Subscription{
+	serviceName := "Ivi"
+	updateValues := entity.SubscriptionUpdate{
 		ID:          _subsUUID,
-		ServiceName: "Ivi",
+		ServiceName: &serviceName,
 	}
 
 	updatedSubs, err := _repo.Update(&updateValues)

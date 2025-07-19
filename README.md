@@ -4,10 +4,14 @@ REST API для агрегации данных об онлайн-подписк
 
 ## Предварительная настройка (перед запуском)
 
-1. Склонировать репозиторий
-2. Перейти в папку с репозиторием
+Склонировать репозиторий и перейти в папку с репозиторием
 
-3. В корне проекта необходимо создать файл .env и поместить в него переменные окружения:
+```shell
+git clone https://github.com/ej-you/SubscriptionAggregator.git
+cd ./SubscriptionAggregator
+```
+
+В корне проекта необходимо создать файл .env и поместить в него переменные окружения:
 
 ```dotenv
 POSTGRES_USER="aggregator"
@@ -22,7 +26,7 @@ POSTGRES_PORT="5432"
 ## Запуск
 
 ```shell
-docker compose -f ./docker-compose.yml up
+docker compose -f ./docker-compose.yml up -d
 ```
 
 > !! Затем необходимо провести миграции, используя команду !!
@@ -36,6 +40,12 @@ docker compose -f ./docker-compose.yml up
 Swagger документация — `/api/v1/docs`.
 
 [Ссылка](http://127.0.0.1:8000/api/v1/docs) на swagger документацию (локальный адрес).
+
+Чтобы остановить сервер используйте
+
+```shell
+docker compose -f ./docker-compose.yml down
+```
 
 ## Дополнительно
 

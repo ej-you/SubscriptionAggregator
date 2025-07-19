@@ -32,5 +32,7 @@ func (f *TextFormatterUTC) Format(e *logrus.Entry) ([]byte, error) {
 // Init sets up main logger for application.
 func Init() {
 	logrus.SetOutput(os.Stderr)
-	logrus.SetFormatter(&TextFormatterUTC{})
+	logrus.SetFormatter(&TextFormatterUTC{
+		logrus.TextFormatter{FullTimestamp: true},
+	})
 }

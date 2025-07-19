@@ -19,6 +19,7 @@ type subsRepoPG struct {
 	dbStorage *gorm.DB
 }
 
+// NewSubsRepoDB returns new SubsRepoDB instance.
 func NewSubsRepoDB(dbStorage *gorm.DB) repo.SubsRepoDB {
 	return &subsRepoPG{
 		dbStorage: dbStorage,
@@ -52,50 +53,17 @@ func (r *subsRepoPG) GetByID(id string) (*entity.Subscription, error) {
 // Update updates subscription.
 // It selects subs by given ID and replace all old values (from DB) to new (given).
 // It returns full filled updated subs.
-func (r *subsRepoPG) Update(subs *entity.Subscription) (*entity.Subscription, error) {
-	// get subs by given ID
-	subsFromDB, err := r.GetByID(subs.ID)
+func (r *subsRepoPG) Update(subs *entity.SubscriptionUpdate) (*entity.Subscription, error) {
+	// update subs
+	err := r.dbStorage.Model(&entity.Subscription{}).
+		Where("id = ?", subs.ID).
+		Updates(subs).Error
 	if err != nil {
 		return nil, fmt.Errorf("update: %w", err)
 	}
-	// map with fields to update
-	updates := make(map[string]any)
-	// append non-nil new field values to map
-	if subs.ServiceName != "" {
-		updates["service_name"] = subs.ServiceName
-		subsFromDB.ServiceName = subs.ServiceName
-	}
-	if subs.Price != 0 {
-		updates["price"] = subs.Price
-		subsFromDB.Price = subs.Price
-	}
-	if subs.UserID != "" {
-		updates["user_id"] = subs.UserID
-		subsFromDB.UserID = subs.UserID
-	}
-	if subs.StartDate != nil {
-		updates["start_date"] = subs.StartDate
-		subsFromDB.StartDate = subs.StartDate
-	}
-	if subs.EndDate != nil {
-		updates["end_date"] = subs.EndDate
-		subsFromDB.EndDate = subs.EndDate
-	}
-	if subs.StartDate != nil && subs.EndDate != nil {
-		// if end date after start date
-		if subsFromDB.StartDate.After(*subsFromDB.EndDate) {
-			return nil, fmt.Errorf("%w: end date after start date", errors.ErrValidateData)
-		}
-	}
 
-	// if nothing to update
-	if len(updates) == 0 {
-		return subsFromDB, nil
-	}
-	// update subs
-	err = r.dbStorage.Model(&entity.Subscription{}).
-		Where("id = ?", subs.ID).
-		Updates(updates).Error
+	// get updated subs by ID
+	subsFromDB, err := r.GetByID(subs.ID)
 	if err != nil {
 		return nil, fmt.Errorf("update: %w", err)
 	}
