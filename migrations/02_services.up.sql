@@ -1,0 +1,11 @@
+DROP TABLE IF EXISTS services;
+
+CREATE TABLE services (
+    id UUID PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE
+);
+
+ALTER TABLE subs DROP COLUMN service_name;
+
+ALTER TABLE subs
+ADD COLUMN service_id UUID NOT NULL REFERENCES services (id);

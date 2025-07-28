@@ -1,0 +1,5 @@
+ALTER TABLE subs DROP COLUMN service_id;
+
+ALTER TABLE subs ADD COLUMN service_name VARCHAR(100) NOT NULL;
+
+DROP TABLE IF EXISTS services;
