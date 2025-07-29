@@ -1,8 +1,10 @@
 package usecase
 
 import (
-	"github.com/google/uuid"
+	"fmt"
+
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 
 	"SubscriptionAggregator/internal/app/entity"
 	"SubscriptionAggregator/internal/app/repo"
@@ -12,22 +14,34 @@ var _ SubsUsecase = (*subsUsecase)(nil)
 
 // SubsUsecase implementation.
 type subsUsecase struct {
-	subsRepoDB repo.SubsRepoDB
+	subsRepoDB    repo.SubsRepoDB
+	serviceRepoDB repo.ServiceRepoDB
 }
 
 // NewSubsUsecase returns new SubsUsecase instance.
-func NewSubsUsecase(subsRepoDB repo.SubsRepoDB) SubsUsecase {
+func NewSubsUsecase(subsRepoDB repo.SubsRepoDB, serviceRepoDB repo.ServiceRepoDB) SubsUsecase {
 	return &subsUsecase{
-		subsRepoDB: subsRepoDB,
+		subsRepoDB:    subsRepoDB,
+		serviceRepoDB: serviceRepoDB,
 	}
 }
 
 // Create creates new subs.
 // All required fields must be presented. ID is auto-generated.
 func (u *subsUsecase) Create(subs *entity.Subscription) error {
-	subs.ID = uuid.NewString()
-	err := u.subsRepoDB.Create(subs)
-	return errors.Wrap(err, "create subs")
+	logrus.Infof("Create subs: %+v", subs)
+
+	service := &entity.Service{Name: subs.ServiceName}
+	// get or create service
+	if err := u.serviceRepoDB.GetByNameOrCreate(service); err != nil {
+		return fmt.Errorf("get or create service: %w", err)
+	}
+	subs.ServiceID = service.ID
+	// create subs
+	if err := u.subsRepoDB.Create(subs); err != nil {
+		return fmt.Errorf("create subs: %w", err)
+	}
+	return nil
 }
 
 // Get gets one subs by given ID.
@@ -38,7 +52,18 @@ func (u *subsUsecase) GetByID(id string) (*entity.Subscription, error) {
 
 // Update updates all subs fields with given data by giving book ID.
 // ID and all required fields must be presented.
+// TODO: check service update
 func (u *subsUsecase) Update(subs *entity.SubscriptionUpdate) (*entity.Subscription, error) {
+	// if service name is presented
+	if subs.ServiceName != nil {
+		service := &entity.Service{Name: *subs.ServiceName}
+		// get or create service
+		if err := u.serviceRepoDB.GetByNameOrCreate(service); err != nil {
+			return nil, fmt.Errorf("get or create service: %w", err)
+		}
+		subs.ServiceID = &service.ID
+	}
+
 	updatedSubs, err := u.subsRepoDB.Update(subs)
 	return updatedSubs, errors.Wrap(err, "update subs")
 }
@@ -50,6 +75,7 @@ func (u *subsUsecase) Delete(id string) error {
 }
 
 // GetAll gets all subs.
+// TODO: add pagination
 func (u *subsUsecase) GetAll() (entity.SubscriptionList, error) {
 	subsList, err := u.subsRepoDB.GetList()
 	return subsList, errors.Wrap(err, "get all subs")

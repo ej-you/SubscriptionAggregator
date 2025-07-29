@@ -5,6 +5,7 @@ import (
 	goerrors "errors"
 	"fmt"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 
 	"SubscriptionAggregator/internal/app/entity"
@@ -27,8 +28,9 @@ func NewSubsRepoDB(dbStorage *gorm.DB) repo.SubsRepoDB {
 }
 
 // Create creates new subscription.
-// All necessary fields must be presented.
+// All necessary fields must be presented. ID will be generated.
 func (r *subsRepoPG) Create(subs *entity.Subscription) error {
+	subs.ID = uuid.NewString()
 	if err := r.dbStorage.Create(subs).Error; err != nil {
 		return fmt.Errorf("create: %w", err)
 	}
@@ -36,10 +38,13 @@ func (r *subsRepoPG) Create(subs *entity.Subscription) error {
 }
 
 // GetByID gets subscription by given ID and returns it.
-func (r *subsRepoPG) GetByID(id string) (*entity.Subscription, error) {
+func (r *subsRepoPG) GetByID(subsID string) (*entity.Subscription, error) {
 	subs := &entity.Subscription{}
 
-	err := r.dbStorage.Where("id = ?", id).First(subs).Error
+	err := r.dbStorage.Table("subs").
+		Select("subs.*, services.name as service_name").
+		Joins("LEFT JOIN services ON services.id = subs.service_id").
+		Where("subs.id = ?", subsID).First(subs).Error
 	// if record not found
 	if goerrors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, errors.ErrNotFound
@@ -71,6 +76,7 @@ func (r *subsRepoPG) Update(subs *entity.SubscriptionUpdate) (*entity.Subscripti
 }
 
 // Delete deletes subscription by its ID.
+// TODO: returns 404 if subs is not exists
 func (r *subsRepoPG) Delete(id string) error {
 	if err := r.dbStorage.Delete(&entity.Subscription{}, "id = ?", id).Error; err != nil {
 		return fmt.Errorf("delete: %w", err)
@@ -79,6 +85,8 @@ func (r *subsRepoPG) Delete(id string) error {
 }
 
 // GetList gets all subscriptions and returns it.
+// TODO: join servicess
+// TODO: add pagination
 func (r *subsRepoPG) GetList() (entity.SubscriptionList, error) {
 	var subsList entity.SubscriptionList
 
@@ -89,45 +97,47 @@ func (r *subsRepoPG) GetList() (entity.SubscriptionList, error) {
 }
 
 // GetSum returns sum of subs prices filtered by given filter.
+// TODO: rewrite function
 func (r *subsRepoPG) GetSum(filter *entity.SubscriptionSumFilter) (int, error) {
-	var prices []int
+	panic("rewrite")
+	// var prices []int
 
-	dbQuery := r.dbStorage.Model(&entity.Subscription{})
-	// apply main conditions
-	if filter.UserID != "" {
-		dbQuery = dbQuery.Where("user_id = ?", filter.UserID)
-	}
-	if filter.ServiceName != "" {
-		dbQuery = dbQuery.Where("service_name = ?", filter.ServiceName)
-	}
+	// dbQuery := r.dbStorage.Model(&entity.Subscription{})
+	// // apply main conditions
+	// if filter.UserID != "" {
+	// 	dbQuery = dbQuery.Where("user_id = ?", filter.UserID)
+	// }
+	// if filter.ServiceName != "" {
+	// 	dbQuery = dbQuery.Where("service_name = ?", filter.ServiceName)
+	// }
 
-	dateCond := r.dbStorage.Model(&entity.Subscription{})
-	// collect date condition
-	if filter.StartDate != nil {
-		dateCond = dateCond.Or("start_date <= ?::date AND end_date IS NULL", filter.StartDate)
-	}
-	if filter.EndDate != nil {
-		dateCond = dateCond.Or("end_date = ?::date", filter.EndDate)
-	}
-	if filter.StartDate != nil && filter.EndDate != nil {
-		dateCond = dateCond.Or("start_date >= ?::date AND start_date < ?::date",
-			filter.StartDate, filter.EndDate).
-			Or("start_date <= ?::date AND end_date >= ?::date", filter.StartDate, filter.EndDate).
-			Or("end_date >= ?::date AND end_date <= ?::date", filter.StartDate, filter.EndDate)
-	}
-	// connect date condition to main conditions
-	dbQuery = dbQuery.Where(dateCond)
+	// dateCond := r.dbStorage.Model(&entity.Subscription{})
+	// // collect date condition
+	// if filter.StartDate != nil {
+	// 	dateCond = dateCond.Or("start_date <= ?::date AND end_date IS NULL", filter.StartDate)
+	// }
+	// if filter.EndDate != nil {
+	// 	dateCond = dateCond.Or("end_date = ?::date", filter.EndDate)
+	// }
+	// if filter.StartDate != nil && filter.EndDate != nil {
+	// 	dateCond = dateCond.Or("start_date >= ?::date AND start_date < ?::date",
+	// 		filter.StartDate, filter.EndDate).
+	// 		Or("start_date <= ?::date AND end_date >= ?::date", filter.StartDate, filter.EndDate).
+	// 		Or("end_date >= ?::date AND end_date <= ?::date", filter.StartDate, filter.EndDate)
+	// }
+	// // connect date condition to main conditions
+	// dbQuery = dbQuery.Where(dateCond)
 
-	// select prices
-	err := dbQuery.Pluck("price", &prices).Error
-	if err != nil {
-		return 0, fmt.Errorf("get sum: %w", err)
-	}
+	// // select prices
+	// err := dbQuery.Pluck("price", &prices).Error
+	// if err != nil {
+	// 	return 0, fmt.Errorf("get sum: %w", err)
+	// }
 
-	// sum gotten prices
-	var totalPrice int
-	for _, price := range prices {
-		totalPrice += price
-	}
-	return totalPrice, nil
+	// // sum gotten prices
+	// var totalPrice int
+	// for _, price := range prices {
+	// 	totalPrice += price
+	// }
+	// return totalPrice, nil
 }

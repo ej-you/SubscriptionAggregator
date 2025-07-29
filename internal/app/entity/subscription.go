@@ -7,16 +7,19 @@ import "time"
 type Subscription struct {
 	// subscription uuid
 	ID string `json:"id" gorm:"id;primaryKey;type:uuid"`
-	// service name
-	ServiceName string `json:"service_name" gorm:"service_name;not null"`
 	// price
 	Price int `json:"price" gorm:"price;not null"`
 	// user uuid
-	UserID string `json:"user_id" gorm:"user_id;not null"`
+	UserID string `json:"user_id" gorm:"user_id;type:uuid;not null"`
 	// start date
 	StartDate *time.Time `json:"start_date" gorm:"start_date;not null"`
 	// end date
-	EndDate *time.Time `json:"end_date,omitempty" gorm:"end_date"`
+	EndDate *time.Time `json:"end_date" gorm:"end_date"`
+
+	// service uuid
+	ServiceID string `json:"-" gorm:"service_id;type:uuid"`
+	// service name
+	ServiceName string `json:"service_name" gorm:"-"`
 }
 
 func (Subscription) TableName() string {
@@ -30,16 +33,19 @@ type SubscriptionList []Subscription
 type SubscriptionUpdate struct {
 	// subscription uuid
 	ID string `json:"id" gorm:"id;primaryKey;type:uuid"`
-	// service name
-	ServiceName *string `json:"service_name" gorm:"service_name"`
 	// price
 	Price *int `json:"price" gorm:"price"`
 	// user uuid
-	UserID *string `json:"user_id" gorm:"user_id"`
+	UserID *string `json:"user_id" gorm:"user_id;type:uuid"`
 	// start date
 	StartDate *time.Time `json:"start_date" gorm:"start_date"`
 	// end date
 	EndDate *time.Time `json:"end_date" gorm:"end_date"`
+
+	// service uuid
+	ServiceID *string `json:"-" gorm:"service_id;type:uuid"`
+	// service name
+	ServiceName *string `json:"service_name" gorm:"-"`
 }
 
 // @description Filter for SubscriptionSum result.

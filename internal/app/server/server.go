@@ -97,8 +97,9 @@ func (s *httpServer) Run() {
 
 	// create repos
 	subsRepoDB := repopg.NewSubsRepoDB(s.db)
+	serviceRepoDB := repopg.NewServiceRepoDB(s.db)
 	// create usecases
-	subsUsecase := usecase.NewSubsUsecase(subsRepoDB)
+	subsUsecase := usecase.NewSubsUsecase(subsRepoDB, serviceRepoDB)
 	// create controllers
 	subsController := httpv1.NewSubsController(subsUsecase, s.valid)
 	// register endpoints

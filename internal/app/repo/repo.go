@@ -7,6 +7,10 @@ import (
 	"SubscriptionAggregator/internal/app/entity"
 )
 
+type ServiceRepoDB interface {
+	GetByNameOrCreate(service *entity.Service) error
+}
+
 type SubsRepoDB interface {
 	Create(subs *entity.Subscription) error
 	GetByID(id string) (*entity.Subscription, error)
