@@ -1,7 +1,7 @@
 package errors
 
 import (
-	goerrors "errors"
+	"errors"
 	"strings"
 
 	fiber "github.com/gofiber/fiber/v2"
@@ -16,7 +16,7 @@ func CustomErrorHandler(ctx *fiber.Ctx, err error) error {
 
 	// if resource was not found
 	var fiberErr *fiber.Error
-	if goerrors.As(err, &fiberErr) {
+	if errors.As(err, &fiberErr) {
 		errStatusCode = fiberErr.Code
 		if strings.HasPrefix(fiberErr.Message, "Cannot GET") {
 			msg = "resource not found"

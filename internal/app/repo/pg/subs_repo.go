@@ -122,6 +122,62 @@ func (r *SubsRepoPG) GetList(subsList *entity.SubscriptionList) error {
 // GetSum returns sum of subs prices filtered by given filter.
 // TODO: rewrite function
 func (r *SubsRepoPG) GetSum(filter *entity.SubscriptionSumFilter) (int, error) {
+	/*
+		SELECT price, (DATE_PART('year', age(end_date, start_date)) * 12 +
+		DATE_PART('month', age(end_date, start_date))) AS period,
+		start_date, end_date FROM subs;
+
+		SELECT (DATE_PART('year', age(end_date, start_date)) * 12 +
+		DATE_PART('month', age(end_date, start_date))) * price AS total,
+		start_date, end_date FROM subs;
+
+		--- start_date = '2025-10-01' ---
+		SELECT price, start_date, end_date,
+		GREATEST('2025-09-01', start_date) FROM subs
+		WHERE end_date IS NULL AND start_date < '2025-10-01';
+
+		--- end_date = '2025-12-01' ---
+		SELECT price, start_date, end_date FROM subs
+		WHERE end_date = '2025-12-01';
+
+		--- start_date = '2025-09-01' ---
+		--- end_date = '2025-12-01' ---
+		SELECT price, start_date, end_date,
+		GREATEST('2025-09-01', start_date),
+		LEAST('2025-12-01', end_date) FROM subs
+		WHERE start_date >= '2025-09-01' AND start_date < '2025-12-01';
+
+		--- start_date = '2025-10-01' ---
+		--- end_date = '2025-11-01' ---
+		SELECT price, start_date, end_date,
+		GREATEST('2025-10-01', start_date),
+		LEAST('2025-11-01', end_date) FROM subs
+		WHERE start_date <= '2025-10-01' AND end_date >= '2025-11-01';
+
+		--- start_date = '2025-09-01' ---
+		--- end_date = '2025-12-01' ---
+		SELECT price, start_date, end_date,
+		GREATEST('2025-10-01', start_date),
+		LEAST('2025-11-01', end_date) FROM subs
+		WHERE end_date >= '2025-09-01' AND end_date <= '2025-12-01';
+
+
+
+
+
+		if filter.StartDate != nil {
+			dateCond = dateCond.Or("start_date <= ?::date AND end_date IS NULL", filter.StartDate)
+		}
+		if filter.EndDate != nil {
+			dateCond = dateCond.Or("end_date = ?::date", filter.EndDate)
+		}
+		if filter.StartDate != nil && filter.EndDate != nil {
+			dateCond = dateCond.Or("start_date >= ?::date AND start_date < ?::date", filter.StartDate, filter.EndDate).
+				Or("start_date <= ?::date AND end_date >= ?::date", filter.StartDate, filter.EndDate).
+				Or("end_date >= ?::date AND end_date <= ?::date", filter.StartDate, filter.EndDate)
+		}
+	*/
+
 	return 350, nil
 	// var prices []int
 
