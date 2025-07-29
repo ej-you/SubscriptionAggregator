@@ -72,10 +72,14 @@ func (r *SubsRepoPG) Update(subs *entity.SubscriptionUpdate) (*entity.Subscripti
 }
 
 // Delete deletes subscription by its ID.
-// TODO: returns 404 if subs is not exists
 func (r *SubsRepoPG) Delete(id string) error {
-	if err := r.dbStorage.Delete(&entity.Subscription{}, "id = ?", id).Error; err != nil {
+	result := r.dbStorage.Delete(&entity.Subscription{}, "id = ?", id)
+	if err := result.Error; err != nil {
 		return fmt.Errorf("delete: %w", err)
+	}
+	// if no one record was deleted
+	if result.RowsAffected == 0 {
+		return errors.ErrNotFound
 	}
 	return nil
 }
