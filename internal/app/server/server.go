@@ -21,16 +21,8 @@ import (
 	"SubscriptionAggregator/internal/pkg/validator"
 )
 
-var _ Server = (*httpServer)(nil)
-
-// HTTP-server interface.
-type Server interface {
-	Run()
-	WaitForShutdown() error
-}
-
-// HTTP-server implementation.
-type httpServer struct {
+// HTTP-server.
+type Server struct {
 	cfg     *config.Config
 	db      *gorm.DB
 	valid   validator.Validator
@@ -40,8 +32,8 @@ type httpServer struct {
 	err      chan error // server listen error
 }
 
-// New returns new Server instance.
-func New(cfg *config.Config) (Server, error) {
+// New returns new server instance.
+func New(cfg *config.Config) (*Server, error) {
 	logger.InitLogrus(cfg.App.LogLevel, cfg.App.LogFormat)
 
 	gormDB, err := database.New(cfg.DB.ConnString,
@@ -55,7 +47,7 @@ func New(cfg *config.Config) (Server, error) {
 		return nil, fmt.Errorf("db: %w", err)
 	}
 
-	return &httpServer{
+	return &Server{
 		cfg:     cfg,
 		db:      gormDB,
 		valid:   validator.New(),
@@ -76,7 +68,7 @@ func New(cfg *config.Config) (Server, error) {
 //	@produce		json
 //
 // Run starts server.
-func (s *httpServer) Run() {
+func (s *Server) Run() {
 	// app init
 	s.fiberApp = fiber.New(fiber.Config{
 		AppName:       s.cfg.Server.Name,
@@ -107,7 +99,7 @@ func (s *httpServer) Run() {
 
 // WaitForShutdown waits for OS signal to gracefully shuts down server.
 // This method is blocking.
-func (s *httpServer) WaitForShutdown() error {
+func (s *Server) WaitForShutdown() error {
 	// skip if server is not running
 	if s.fiberApp == nil {
 		return nil

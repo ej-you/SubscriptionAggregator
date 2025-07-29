@@ -20,6 +20,8 @@ const (
 )
 
 // Logger is a middleware for logging all request-response chains.
+// Accepted values for logLevel: "info", "warn", "error".
+// Accepted values for logFormat: "text", "json".
 func Logger(logLevel, logFormat string) fiber.Handler {
 	if logLevel != _logLevelInfo {
 		return nil

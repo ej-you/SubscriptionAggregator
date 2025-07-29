@@ -15,7 +15,7 @@ var (
 )
 
 // registerEndpointsV1 registera all endpoints for 1 version of API.
-func (s *httpServer) registerEndpointsV1() {
+func (s *Server) registerEndpointsV1() {
 	// create repos
 	subsRepoDB := repopg.NewSubsRepoDB(s.db)
 	serviceRepoDB := repopg.NewServiceRepoDB(s.db)

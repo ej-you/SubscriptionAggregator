@@ -8,6 +8,14 @@ import (
 	"SubscriptionAggregator/internal/app/server"
 )
 
+var _ HTTPServer = (*server.Server)(nil)
+
+// HTTP-server interface.
+type HTTPServer interface {
+	Run()
+	WaitForShutdown() error
+}
+
 // Run loads app config and starts HTTP-server.
 // This function is blocking.
 func Run() error {

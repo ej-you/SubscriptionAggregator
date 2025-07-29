@@ -39,6 +39,8 @@ func (f *TextFormatterUTC) Format(e *logrus.Entry) ([]byte, error) {
 }
 
 // InitLogrus sets up main logger for application with level and formatter.
+// Accepted values for logLevel: "info", "warn", "error".
+// Accepted values for logFormat: "text", "json".
 func InitLogrus(logLevel, logFormat string) {
 	logrus.SetOutput(os.Stderr)
 
