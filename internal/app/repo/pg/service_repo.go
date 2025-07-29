@@ -1,7 +1,7 @@
 package pg
 
 import (
-	goerrors "errors"
+	"errors"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -26,7 +26,7 @@ func NewServiceRepoDB(dbStorage *gorm.DB) *ServiceRepoPG {
 func (r *ServiceRepoPG) GetByNameOrCreate(service *entity.Service) error {
 	err := r.dbStorage.Where("name = ?", service.Name).First(service).Error
 	// if record not found
-	if goerrors.Is(err, gorm.ErrRecordNotFound) {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		// create new service record
 		return r.create(service)
 	}

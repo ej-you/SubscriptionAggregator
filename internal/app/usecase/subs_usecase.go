@@ -62,7 +62,6 @@ func (u *SubsUsecase) GetByID(id string) (*entity.Subscription, error) {
 
 // Update updates all subs fields with given data by giving book ID.
 // ID and all required fields must be presented.
-// TODO: check service update
 func (u *SubsUsecase) Update(subs *entity.SubscriptionUpdate) (*entity.Subscription, error) {
 	// if service name is presented
 	if subs.ServiceName != nil {

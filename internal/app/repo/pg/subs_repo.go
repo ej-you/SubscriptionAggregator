@@ -81,12 +81,14 @@ func (r *SubsRepoPG) Delete(id string) error {
 }
 
 // GetList gets all subscriptions and returns it.
-// TODO: join servicess
 // TODO: add pagination
 func (r *SubsRepoPG) GetList() (entity.SubscriptionList, error) {
 	var subsList entity.SubscriptionList
 
-	if err := r.dbStorage.Find(&subsList).Error; err != nil {
+	if err := r.dbStorage.Table("subs").
+		Select("subs.*, services.name as service_name").
+		Joins("LEFT JOIN services ON services.id = subs.service_id").
+		Find(&subsList).Error; err != nil {
 		return nil, fmt.Errorf("get list: %w", err)
 	}
 	return subsList, nil

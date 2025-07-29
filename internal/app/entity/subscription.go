@@ -19,7 +19,7 @@ type Subscription struct {
 	// service uuid
 	ServiceID string `json:"-" gorm:"service_id;type:uuid"`
 	// service name
-	ServiceName string `json:"service_name" gorm:"-"`
+	ServiceName string `json:"service_name" gorm:"service_name;->"`
 }
 
 func (Subscription) TableName() string {
@@ -45,7 +45,7 @@ type SubscriptionUpdate struct {
 	// service uuid
 	ServiceID *string `json:"-" gorm:"service_id;type:uuid"`
 	// service name
-	ServiceName *string `json:"service_name" gorm:"-"`
+	ServiceName *string `json:"service_name" gorm:"service_name;->"`
 }
 
 // @description Filter for SubscriptionSum result.
