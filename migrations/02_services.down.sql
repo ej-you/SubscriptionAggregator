@@ -1,4 +1,6 @@
-ALTER TABLE subs DROP COLUMN service_id;
+ALTER TABLE subs
+DROP CONSTRAINT fk_subs_service,
+DROP COLUMN service_id;
 
 ALTER TABLE subs ADD COLUMN service_name VARCHAR(100) NOT NULL;
 
