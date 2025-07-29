@@ -89,7 +89,13 @@ func TestSubs_GetByID(t *testing.T) {
 func TestSubs_GetList(t *testing.T) {
 	t.Log("Get all subs")
 
-	subsList, err := _repo.GetList()
+	subsList := &entity.SubscriptionList{
+		Pagination: &entity.SubscriptionPagination{
+			Limit: 2,
+			Page:  1,
+		},
+	}
+	err := _repo.GetList(subsList)
 	require.NoError(t, err)
 
 	t.Logf("All subs: %v", subsList)

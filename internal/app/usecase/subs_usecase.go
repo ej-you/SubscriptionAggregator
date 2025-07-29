@@ -19,7 +19,7 @@ type SubsRepoDB interface {
 	GetByID(id string) (*entity.Subscription, error)
 	Update(subs *entity.SubscriptionUpdate) (*entity.Subscription, error)
 	Delete(id string) error
-	GetList() (entity.SubscriptionList, error)
+	GetList(subsList *entity.SubscriptionList) error
 	GetSum(filter *entity.SubscriptionSumFilter) (int, error)
 }
 
@@ -84,10 +84,9 @@ func (u *SubsUsecase) Delete(id string) error {
 }
 
 // GetAll gets all subs.
-// TODO: add pagination
-func (u *SubsUsecase) GetAll() (entity.SubscriptionList, error) {
-	subsList, err := u.subsRepoDB.GetList()
-	return subsList, errors.Wrap(err, "get all subs")
+func (u *SubsUsecase) GetList(subsList *entity.SubscriptionList) error {
+	err := u.subsRepoDB.GetList(subsList)
+	return errors.Wrap(err, "get all subs")
 }
 
 // GetSum returns sum of subs prices filtered by filter.

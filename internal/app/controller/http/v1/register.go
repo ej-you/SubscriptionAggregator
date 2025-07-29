@@ -12,7 +12,7 @@ func RegisterSubsEndpoints(router fiber.Router, controller *SubsController) {
 	crudlPrefix.Get("/:id", controller.GetByID)
 	crudlPrefix.Patch("/:id", controller.Update)
 	crudlPrefix.Delete("/:id", controller.Delete)
-	crudlPrefix.Get("/", controller.GetAll)
+	crudlPrefix.Get("/", controller.GetList)
 
 	router.Get("/subs-sum", controller.GetSum)
 }

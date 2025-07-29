@@ -17,7 +17,7 @@ type SubsUsecase interface {
 	GetByID(id string) (*entity.Subscription, error)
 	Update(subs *entity.SubscriptionUpdate) (*entity.Subscription, error)
 	Delete(id string) error
-	GetAll() (entity.SubscriptionList, error)
+	GetList(subsList *entity.SubscriptionList) error
 	GetSum(filter *entity.SubscriptionSumFilter) (int, error)
 }
 
@@ -177,14 +177,29 @@ func (c *SubsController) Delete(ctx *fiber.Ctx) error {
 }
 
 // @summary		Получить все записи подписок
-// @description	Получение всех записей подписок.
+// @description	Получение всех записей подписок с пагинацией.
 // @router			/subs [get]
 // @id				get-all-subs
 // @tags			subs-crudl
-// @success		200	{object}	entity.SubscriptionList
-func (c *SubsController) GetAll(ctx *fiber.Ctx) error {
+// @param			limit	query		int	false	"Кол-во результатов на страницу (по умолчанию: 10)"	example:"5"
+// @param			page	query		int	false	"Номер страницы (по умолчанию: 1)"					example:"2"
+// @success		200		{object}	entity.SubscriptionList
+func (c *SubsController) GetList(ctx *fiber.Ctx) error {
+	subsList := &entity.SubscriptionList{
+		Data:       make([]entity.Subscription, 0),
+		Pagination: &entity.SubscriptionPagination{},
+	}
+	// parse query-params
+	if err := ctx.QueryParser(subsList.Pagination); err != nil {
+		return fmt.Errorf("parse query: %w", err)
+	}
+	// validate parsed data
+	if err := c.valid.Validate(subsList.Pagination); err != nil {
+		return fmt.Errorf("%w: %s", errors.ErrValidateData, err.Error())
+	}
+
 	// get all subs
-	subsList, err := c.subsUC.GetAll()
+	err := c.subsUC.GetList(subsList)
 	if err != nil {
 		return err
 	}
@@ -196,7 +211,7 @@ func (c *SubsController) GetAll(ctx *fiber.Ctx) error {
 // @router			/subs-sum [get]
 // @id				get-subs-sum
 // @tags			subs-advanced
-// @param			user_id			query		string	false	"UUID пользователя"	example"60601fee-2bf1-4721-ae6f-7636e79a0cba"
+// @param			user_id			query		string	false	"UUID пользователя"	example:"60601fee-2bf1-4721-ae6f-7636e79a0cba"
 // @param			service_name	query		string	false	"Название сервиса"	example:"Yandex Plus"
 // @param			start_date		query		string	false	"Дата начала"		example:"07-2025"
 // @param			end_date		query		string	false	"Дата окончания"	example:"08-2025"

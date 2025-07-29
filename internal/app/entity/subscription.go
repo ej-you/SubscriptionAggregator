@@ -26,8 +26,23 @@ func (Subscription) TableName() string {
 	return "subs"
 }
 
-// Subscription list.
-type SubscriptionList []Subscription
+// @description Pagination settings for SubscriptionList result.
+type SubscriptionPagination struct {
+	// current page number
+	Page int `json:"page" query:"page" validate:"omitempty,min=1"`
+	// total pages amount
+	Pages int `json:"pages"`
+	// total subs
+	Total int64 `json:"total"`
+	// subs per page amount
+	Limit int `json:"limit" query:"limit" validate:"omitempty,min=1"`
+}
+
+// Subscription list with pagination.
+type SubscriptionList struct {
+	Data       []Subscription          `json:"data"`
+	Pagination *SubscriptionPagination `json:"pagination"`
+}
 
 // @description Subscription object variant for update it.
 type SubscriptionUpdate struct {

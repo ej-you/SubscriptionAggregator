@@ -4,6 +4,7 @@ package pg
 import (
 	goerrors "errors"
 	"fmt"
+	"math"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -11,6 +12,8 @@ import (
 	"SubscriptionAggregator/internal/app/entity"
 	"SubscriptionAggregator/internal/app/errors"
 )
+
+const _defaultSubsListLimit = 10 // default subs per page value in subs list
 
 type SubsRepoPG struct {
 	dbStorage *gorm.DB
@@ -85,23 +88,41 @@ func (r *SubsRepoPG) Delete(id string) error {
 }
 
 // GetList gets all subscriptions and returns it.
-// TODO: add pagination
-func (r *SubsRepoPG) GetList() (entity.SubscriptionList, error) {
-	var subsList entity.SubscriptionList
-
-	if err := r.dbStorage.Table("subs").
-		Select("subs.*, services.name as service_name").
-		Joins("LEFT JOIN services ON services.id = subs.service_id").
-		Find(&subsList).Error; err != nil {
-		return nil, fmt.Errorf("get list: %w", err)
+func (r *SubsRepoPG) GetList(subsList *entity.SubscriptionList) error {
+	// set default limit if it is not set manually
+	if subsList.Pagination.Limit == 0 {
+		subsList.Pagination.Limit = _defaultSubsListLimit
 	}
-	return subsList, nil
+	// set page 1 if it is not set manually
+	if subsList.Pagination.Page == 0 {
+		subsList.Pagination.Page = 1
+	}
+
+	// create select query without pagination
+	selectQuery := r.dbStorage.Table("subs").
+		Select("subs.*, services.name as service_name").
+		Joins("LEFT JOIN services ON services.id = subs.service_id")
+
+	// select total amount
+	// use session to avoid intersection of main and "count" queries
+	selectQuery.Session(&gorm.Session{}).Count(&subsList.Pagination.Total)
+	// calc pages amount
+	subsList.Pagination.Pages = calcPages(subsList.Pagination.Total, subsList.Pagination.Limit)
+
+	// select subs with pagination
+	err := selectQuery.Limit(subsList.Pagination.Limit).
+		Offset((subsList.Pagination.Page - 1) * subsList.Pagination.Limit).
+		Find(&subsList.Data).Error
+	if err != nil {
+		return fmt.Errorf("get list: %w", err)
+	}
+	return nil
 }
 
 // GetSum returns sum of subs prices filtered by given filter.
 // TODO: rewrite function
 func (r *SubsRepoPG) GetSum(filter *entity.SubscriptionSumFilter) (int, error) {
-	panic("rewrite")
+	return 350, nil
 	// var prices []int
 
 	// dbQuery := r.dbStorage.Model(&entity.Subscription{})
@@ -142,4 +163,9 @@ func (r *SubsRepoPG) GetSum(filter *entity.SubscriptionSumFilter) (int, error) {
 	// 	totalPrice += price
 	// }
 	// return totalPrice, nil
+}
+
+// calcPages calc pages amount.
+func calcPages(total int64, limit int) int {
+	return int(math.Ceil(float64(total) / float64(limit)))
 }

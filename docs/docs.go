@@ -23,20 +23,31 @@ const docTemplate = `{
     "paths": {
         "/subs": {
             "get": {
-                "description": "Получение всех записей подписок.",
+                "description": "Получение всех записей подписок с пагинацией.",
                 "tags": [
                     "subs-crudl"
                 ],
                 "summary": "Получить все записи подписок",
                 "operationId": "get-all-subs",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Кол-во результатов на страницу (по умолчанию: 10)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Номер страницы (по умолчанию: 1)",
+                        "name": "page",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/entity.Subscription"
-                            }
+                            "$ref": "#/definitions/entity.SubscriptionList"
                         }
                     }
                 }
@@ -246,6 +257,44 @@ const docTemplate = `{
                 "user_id": {
                     "description": "user uuid",
                     "type": "string"
+                }
+            }
+        },
+        "entity.SubscriptionList": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Subscription"
+                    }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/entity.SubscriptionPagination"
+                }
+            }
+        },
+        "entity.SubscriptionPagination": {
+            "description": "Pagination settings for SubscriptionList result.",
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "description": "subs per page amount",
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "page": {
+                    "description": "current page number",
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "pages": {
+                    "description": "total pagea amount",
+                    "type": "integer"
+                },
+                "total": {
+                    "description": "total subs",
+                    "type": "integer"
                 }
             }
         },
