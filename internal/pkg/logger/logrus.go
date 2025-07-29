@@ -7,6 +7,15 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+const (
+	_textFormat = "text" // text log format tag
+	_jsonFormat = "json" // json log format tag
+
+	_logLevelError = "error" // error log level tag
+	_logLevelWarn  = "warn"  // warn log level tag
+	_logLevelInfo  = "info"  // info log level tag
+)
+
 // JSONFormatterUTC is the logrus.JSONFormatter wrapper with time in UTC.
 type JSONFormatterUTC struct {
 	logrus.JSONFormatter
@@ -29,10 +38,37 @@ func (f *TextFormatterUTC) Format(e *logrus.Entry) ([]byte, error) {
 	return f.TextFormatter.Format(e)
 }
 
-// Init sets up main logger for application.
-func Init() {
+// Init sets up main logger for application with level and formatter.
+func Init(logLevel, logFormat string) {
 	logrus.SetOutput(os.Stderr)
+
+	// set formatter
+	switch logFormat {
+	case _textFormat:
+		setTextFormatter()
+	case _jsonFormat:
+		setJSONFormatter()
+	}
+
+	// set log level
+	switch logLevel {
+	case _logLevelInfo:
+		logrus.SetLevel(logrus.InfoLevel)
+	case _logLevelWarn:
+		logrus.SetLevel(logrus.WarnLevel)
+	case _logLevelError:
+		logrus.SetLevel(logrus.ErrorLevel)
+	}
+}
+
+// setTextFormatter sets text formatter for logger.
+func setTextFormatter() {
 	logrus.SetFormatter(&TextFormatterUTC{
 		logrus.TextFormatter{FullTimestamp: true},
 	})
+}
+
+// setJSONFormatter sets json formatter for logger.
+func setJSONFormatter() {
+	logrus.SetFormatter(&JSONFormatterUTC{})
 }

@@ -4,6 +4,7 @@ package config
 
 import (
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/ilyakaznacheev/cleanenv"
@@ -11,8 +12,14 @@ import (
 
 type (
 	Config struct {
+		App
 		Server
 		DB
+	}
+
+	App struct {
+		LogLevel  string `env:"LOG_LEVEL" env-default:"info" env-description:"info/warn/error"`
+		LogFormat string `env:"LOG_FORMAT" env-default:"text" env-description:"text/json"`
 	}
 
 	Server struct {
@@ -33,6 +40,11 @@ type (
 	}
 )
 
+var (
+	_acceptedLogFormats = []string{"text", "json"}
+	_acceptedLogLevels  = []string{"info", "warn", "error"}
+)
+
 // New returns app config loaded from ENV-vars.
 func New() (*Config, error) {
 	cfg := &Config{}
@@ -40,6 +52,21 @@ func New() (*Config, error) {
 	if err := cleanenv.ReadEnv(cfg); err != nil {
 		return nil, fmt.Errorf("load env variables: %w", err)
 	}
+	// if invalid log format
+	if !slices.Contains(_acceptedLogFormats, cfg.App.LogFormat) {
+		return nil, fmt.Errorf(
+			"invalid log format %s. Accepted formats: %v",
+			cfg.App.LogFormat, _acceptedLogFormats,
+		)
+	}
+	// if invalid log level
+	if !slices.Contains(_acceptedLogLevels, cfg.App.LogLevel) {
+		return nil, fmt.Errorf(
+			"invalid log level %s. Accepted levels: %v",
+			cfg.App.LogLevel, _acceptedLogLevels,
+		)
+	}
+
 	cfg.DB.ConnString = fmt.Sprintf(
 		"user=%s password=%s host=%s port=%s dbname=%s sslmode=disable connect_timeout=10",
 		cfg.DB.User,

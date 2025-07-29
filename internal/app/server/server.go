@@ -42,12 +42,12 @@ type httpServer struct {
 
 // New returns new Server instance.
 func New(cfg *config.Config) (Server, error) {
-	logger.Init()
+	logger.Init(cfg.App.LogLevel, cfg.App.LogFormat)
 
 	gormDB, err := database.New(cfg.DB.ConnString,
 		database.WithTranslateError(),
 		database.WithIgnoreNotFound(),
-		database.WithWarnLogLevel(),
+		database.WithLogLevel(cfg.App.LogLevel),
 		database.WithLogger(logrus.StandardLogger()),
 	)
 	if err != nil {
@@ -87,7 +87,10 @@ func (s *httpServer) Run() {
 	})
 
 	// set up base middlewares
-	s.fiberApp.Use(middleware.Logger())
+	httpLogger := middleware.Logger(s.cfg.App.LogLevel, s.cfg.App.LogFormat)
+	if httpLogger != nil {
+		s.fiberApp.Use(httpLogger)
+	}
 	s.fiberApp.Use(middleware.Recover())
 	s.fiberApp.Use(middleware.Swagger())
 	// register all endpoints

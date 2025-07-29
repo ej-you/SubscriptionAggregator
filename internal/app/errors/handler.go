@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	fiber "github.com/gofiber/fiber/v2"
+	"github.com/sirupsen/logrus"
 )
 
 // CustomErrorHandler is a handler for http server errors.
@@ -19,6 +20,8 @@ func CustomErrorHandler(ctx *fiber.Ctx, err error) error {
 		msg = "resource not found"
 		errStatusCode = 404
 	}
+
+	logrus.Errorf("%d: %s", errStatusCode, msg)
 	// send error response
 	return ctx.Status(errStatusCode).JSON(msg)
 }

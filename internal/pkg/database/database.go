@@ -11,6 +11,12 @@ import (
 	"gorm.io/gorm/logger"
 )
 
+const (
+	_logLevelError = "error" // error log level tag
+	_logLevelWarn  = "warn"  // warn log level tag
+	_logLevelInfo  = "info"  // info log level tag
+)
+
 // Internal interface compatible with a logger.Writer.
 // Used to configure a custom DB logger.
 type Logger interface {
@@ -75,6 +81,22 @@ func New(dsn string, options ...Option) (*gorm.DB, error) {
 func WithLogger(customLogger Logger) Option {
 	return func(d *dbSettings) {
 		d.customLogger = customLogger
+	}
+}
+
+// Set log level for DB. Accepted values: "info", "warn", "error". Optional.
+func WithLogLevel(logLevel string) Option {
+	// deafult level is info level
+	level := logger.Info
+	switch logLevel {
+	case _logLevelWarn:
+		level = logger.Warn
+	case _logLevelError:
+		level = logger.Error
+	}
+
+	return func(d *dbSettings) {
+		d.logLevel = level
 	}
 }
 
