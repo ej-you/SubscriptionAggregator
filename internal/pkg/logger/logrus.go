@@ -38,8 +38,8 @@ func (f *TextFormatterUTC) Format(e *logrus.Entry) ([]byte, error) {
 	return f.TextFormatter.Format(e)
 }
 
-// Init sets up main logger for application with level and formatter.
-func Init(logLevel, logFormat string) {
+// InitLogrus sets up main logger for application with level and formatter.
+func InitLogrus(logLevel, logFormat string) {
 	logrus.SetOutput(os.Stderr)
 
 	// set formatter

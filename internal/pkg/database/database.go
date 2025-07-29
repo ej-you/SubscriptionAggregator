@@ -86,7 +86,7 @@ func WithLogger(customLogger Logger) Option {
 
 // Set log level for DB. Accepted values: "info", "warn", "error". Optional.
 func WithLogLevel(logLevel string) Option {
-	// deafult level is info level
+	// default level is info level
 	level := logger.Info
 	switch logLevel {
 	case _logLevelWarn:

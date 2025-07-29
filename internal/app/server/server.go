@@ -42,11 +42,12 @@ type httpServer struct {
 
 // New returns new Server instance.
 func New(cfg *config.Config) (Server, error) {
-	logger.Init(cfg.App.LogLevel, cfg.App.LogFormat)
+	logger.InitLogrus(cfg.App.LogLevel, cfg.App.LogFormat)
 
 	gormDB, err := database.New(cfg.DB.ConnString,
 		database.WithTranslateError(),
 		database.WithIgnoreNotFound(),
+		database.WithDisableColorful(),
 		database.WithLogLevel(cfg.App.LogLevel),
 		database.WithLogger(logrus.StandardLogger()),
 	)

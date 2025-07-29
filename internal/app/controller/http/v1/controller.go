@@ -167,6 +167,8 @@ func (c *SubsController) Delete(ctx *fiber.Ctx) error {
 	// validate parsed data
 	if err := c.valid.Validate(pathData); err != nil {
 		return fmt.Errorf("%w: %s", errors.ErrValidateData, err.Error())
+		// err = fmt.Errorf("%w: %s", errors.ErrValidateData, err.Error())
+		// return ctx.Status(400).JSON(err.Error())
 	}
 
 	// get subs

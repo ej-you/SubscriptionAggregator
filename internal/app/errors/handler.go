@@ -16,11 +16,14 @@ func CustomErrorHandler(ctx *fiber.Ctx, err error) error {
 
 	// if resource was not found
 	var fiberErr *fiber.Error
-	if goerrors.As(err, &fiberErr) && strings.HasPrefix(fiberErr.Message, "Cannot GET") {
-		msg = "resource not found"
-		errStatusCode = 404
+	if goerrors.As(err, &fiberErr) {
+		errStatusCode = fiberErr.Code
+		if strings.HasPrefix(fiberErr.Message, "Cannot GET") {
+			msg = "resource not found"
+		}
 	}
 
+	// log error
 	logrus.Errorf("%d: %s", errStatusCode, msg)
 	// send error response
 	return ctx.Status(errStatusCode).JSON(msg)
