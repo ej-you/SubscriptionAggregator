@@ -9,18 +9,26 @@ import (
 
 	"SubscriptionAggregator/internal/app/entity"
 	"SubscriptionAggregator/internal/app/errors"
-	"SubscriptionAggregator/internal/app/usecase"
 	"SubscriptionAggregator/internal/pkg/validator"
 )
 
+type SubsUsecase interface {
+	Create(subs *entity.Subscription) error
+	GetByID(id string) (*entity.Subscription, error)
+	Update(subs *entity.SubscriptionUpdate) (*entity.Subscription, error)
+	Delete(id string) error
+	GetAll() (entity.SubscriptionList, error)
+	GetSum(filter *entity.SubscriptionSumFilter) (int, error)
+}
+
 // SubsController is a HTTP-controller for subs usecase.
 type SubsController struct {
-	subsUC usecase.SubsUsecase
+	subsUC SubsUsecase
 	valid  validator.Validator
 }
 
-// NewSubsController returns new SubsController.
-func NewSubsController(subsUC usecase.SubsUsecase, valid validator.Validator) *SubsController {
+// NewSubsController returns new subs controller.
+func NewSubsController(subsUC SubsUsecase, valid validator.Validator) *SubsController {
 	return &SubsController{
 		subsUC: subsUC,
 		valid:  valid,

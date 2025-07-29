@@ -15,10 +15,6 @@ import (
 	"SubscriptionAggregator/internal/app/errors"
 	"SubscriptionAggregator/internal/app/middleware"
 
-	httpv1 "SubscriptionAggregator/internal/app/controller/http/v1"
-	repopg "SubscriptionAggregator/internal/app/repo/pg"
-	"SubscriptionAggregator/internal/app/usecase"
-
 	"SubscriptionAggregator/internal/pkg/database"
 	"SubscriptionAggregator/internal/pkg/jsonify"
 	"SubscriptionAggregator/internal/pkg/logger"
@@ -94,17 +90,8 @@ func (s *httpServer) Run() {
 	s.fiberApp.Use(middleware.Logger())
 	s.fiberApp.Use(middleware.Recover())
 	s.fiberApp.Use(middleware.Swagger())
-
-	// create repos
-	subsRepoDB := repopg.NewSubsRepoDB(s.db)
-	serviceRepoDB := repopg.NewServiceRepoDB(s.db)
-	// create usecases
-	subsUsecase := usecase.NewSubsUsecase(subsRepoDB, serviceRepoDB)
-	// create controllers
-	subsController := httpv1.NewSubsController(subsUsecase, s.valid)
-	// register endpoints
-	apiV1 := s.fiberApp.Group("/api/v1")
-	httpv1.RegisterSubsEndpoints(apiV1, subsController)
+	// register all endpoints
+	s.registerEndpointsV1()
 
 	// start app
 	go func() {

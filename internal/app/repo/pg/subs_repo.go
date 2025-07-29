@@ -10,26 +10,22 @@ import (
 
 	"SubscriptionAggregator/internal/app/entity"
 	"SubscriptionAggregator/internal/app/errors"
-	"SubscriptionAggregator/internal/app/repo"
 )
 
-var _ repo.SubsRepoDB = (*subsRepoPG)(nil)
-
-// SubsRepoDB implementation.
-type subsRepoPG struct {
+type SubsRepoPG struct {
 	dbStorage *gorm.DB
 }
 
-// NewSubsRepoDB returns new SubsRepoDB instance.
-func NewSubsRepoDB(dbStorage *gorm.DB) repo.SubsRepoDB {
-	return &subsRepoPG{
+// NewSubsRepoDB returns new subs PostgreSQL repo DB instance.
+func NewSubsRepoDB(dbStorage *gorm.DB) *SubsRepoPG {
+	return &SubsRepoPG{
 		dbStorage: dbStorage,
 	}
 }
 
 // Create creates new subscription.
 // All necessary fields must be presented. ID will be generated.
-func (r *subsRepoPG) Create(subs *entity.Subscription) error {
+func (r *SubsRepoPG) Create(subs *entity.Subscription) error {
 	subs.ID = uuid.NewString()
 	if err := r.dbStorage.Create(subs).Error; err != nil {
 		return fmt.Errorf("create: %w", err)
@@ -38,7 +34,7 @@ func (r *subsRepoPG) Create(subs *entity.Subscription) error {
 }
 
 // GetByID gets subscription by given ID and returns it.
-func (r *subsRepoPG) GetByID(subsID string) (*entity.Subscription, error) {
+func (r *SubsRepoPG) GetByID(subsID string) (*entity.Subscription, error) {
 	subs := &entity.Subscription{}
 
 	err := r.dbStorage.Table("subs").
@@ -58,7 +54,7 @@ func (r *subsRepoPG) GetByID(subsID string) (*entity.Subscription, error) {
 // Update updates subscription.
 // It selects subs by given ID and replace all old values (from DB) to new (given).
 // It returns full filled updated subs.
-func (r *subsRepoPG) Update(subs *entity.SubscriptionUpdate) (*entity.Subscription, error) {
+func (r *SubsRepoPG) Update(subs *entity.SubscriptionUpdate) (*entity.Subscription, error) {
 	// update subs
 	err := r.dbStorage.Model(&entity.Subscription{}).
 		Where("id = ?", subs.ID).
@@ -77,7 +73,7 @@ func (r *subsRepoPG) Update(subs *entity.SubscriptionUpdate) (*entity.Subscripti
 
 // Delete deletes subscription by its ID.
 // TODO: returns 404 if subs is not exists
-func (r *subsRepoPG) Delete(id string) error {
+func (r *SubsRepoPG) Delete(id string) error {
 	if err := r.dbStorage.Delete(&entity.Subscription{}, "id = ?", id).Error; err != nil {
 		return fmt.Errorf("delete: %w", err)
 	}
@@ -87,7 +83,7 @@ func (r *subsRepoPG) Delete(id string) error {
 // GetList gets all subscriptions and returns it.
 // TODO: join servicess
 // TODO: add pagination
-func (r *subsRepoPG) GetList() (entity.SubscriptionList, error) {
+func (r *SubsRepoPG) GetList() (entity.SubscriptionList, error) {
 	var subsList entity.SubscriptionList
 
 	if err := r.dbStorage.Find(&subsList).Error; err != nil {
@@ -98,7 +94,7 @@ func (r *subsRepoPG) GetList() (entity.SubscriptionList, error) {
 
 // GetSum returns sum of subs prices filtered by given filter.
 // TODO: rewrite function
-func (r *subsRepoPG) GetSum(filter *entity.SubscriptionSumFilter) (int, error) {
+func (r *SubsRepoPG) GetSum(filter *entity.SubscriptionSumFilter) (int, error) {
 	panic("rewrite")
 	// var prices []int
 

@@ -11,7 +11,6 @@ import (
 
 	"SubscriptionAggregator/internal/app/entity"
 	"SubscriptionAggregator/internal/app/errors"
-	"SubscriptionAggregator/internal/app/repo"
 	"SubscriptionAggregator/internal/pkg/database"
 )
 
@@ -20,10 +19,12 @@ const (
 )
 
 var (
-	_repo repo.SubsRepoDB
+	_repo        *SubsRepoPG
+	_serviceRepo *ServiceRepoPG
 
-	_subsUUID = uuid.NewString()
-	_userUUID = "44601fee-2bf1-4721-ae6f-7636e79a0cba"
+	_serviceUUID, _updateServiceUUID string
+	_subsUUID                        = uuid.NewString()
+	_userUUID                        = "44601fee-2bf1-4721-ae6f-7636e79a0cba"
 )
 
 func TestMain(m *testing.M) {
@@ -36,6 +37,23 @@ func TestMain(m *testing.M) {
 		log.Fatalf("get db connection: %v", err)
 	}
 	_repo = NewSubsRepoDB(dbStorage)
+
+	// create test service
+	_serviceRepo = NewServiceRepoDB(dbStorage)
+	testService := &entity.Service{Name: "Yandex Plus"}
+	err = _serviceRepo.GetByNameOrCreate(testService)
+	if err != nil {
+		log.Fatalf("get or create test service: %v", err)
+	}
+	_serviceUUID = testService.ID
+	// create test service for updates
+	testServiceUpdate := &entity.Service{Name: "Kinopoisk"}
+	err = _serviceRepo.GetByNameOrCreate(testServiceUpdate)
+	if err != nil {
+		log.Fatalf("get or create test service: %v", err)
+	}
+	_updateServiceUUID = testServiceUpdate.ID
+
 	// run tests
 	os.Exit(m.Run())
 }
@@ -45,11 +63,11 @@ func TestSubs_Create(t *testing.T) {
 
 	startDate := time.Now().UTC()
 	newSubs := entity.Subscription{
-		ID:          _subsUUID,
-		ServiceName: "Yandex Plus",
-		Price:       400,
-		UserID:      _userUUID,
-		StartDate:   &startDate,
+		ID:        _subsUUID,
+		ServiceID: _serviceUUID,
+		Price:     400,
+		UserID:    _userUUID,
+		StartDate: &startDate,
 	}
 
 	err := _repo.Create(&newSubs)
@@ -80,15 +98,14 @@ func TestSubs_GetList(t *testing.T) {
 func TestSubs_Update(t *testing.T) {
 	t.Log("Update subs")
 
-	serviceName := "Kinopoisk"
 	price := 350
 	startDate := time.Now().UTC()
 	updateValues := entity.SubscriptionUpdate{
-		ID:          _subsUUID,
-		ServiceName: &serviceName,
-		Price:       &price,
-		UserID:      &_userUUID,
-		StartDate:   &startDate,
+		ID:        _subsUUID,
+		ServiceID: &_updateServiceUUID,
+		Price:     &price,
+		UserID:    &_userUUID,
+		StartDate: &startDate,
 	}
 
 	updatedSubs, err := _repo.Update(&updateValues)
@@ -100,15 +117,14 @@ func TestSubs_Update(t *testing.T) {
 func TestSubs_UpdateUnexisting(t *testing.T) {
 	t.Log("Try to update unexisting subs")
 
-	serviceName := "Kinopoisk"
 	price := 350
 	startDate := time.Now().UTC()
 	updateValues := entity.SubscriptionUpdate{
-		ID:          uuid.NewString(),
-		ServiceName: &serviceName,
-		Price:       &price,
-		UserID:      &_userUUID,
-		StartDate:   &startDate,
+		ID:        uuid.NewString(),
+		ServiceID: &_updateServiceUUID,
+		Price:     &price,
+		UserID:    &_userUUID,
+		StartDate: &startDate,
 	}
 
 	_, err := _repo.Update(&updateValues)
@@ -121,10 +137,10 @@ func TestSubs_UpdateUnexisting(t *testing.T) {
 func TestSubs_UpdateOneField(t *testing.T) {
 	t.Log("Update just one subs field")
 
-	serviceName := "Ivi"
+	price := 1100
 	updateValues := entity.SubscriptionUpdate{
-		ID:          _subsUUID,
-		ServiceName: &serviceName,
+		ID:    _subsUUID,
+		Price: &price,
 	}
 
 	updatedSubs, err := _repo.Update(&updateValues)
@@ -138,7 +154,7 @@ func TestSubs_GetSum(t *testing.T) {
 
 	subs := entity.SubscriptionSumFilter{
 		UserID:      _userUUID,
-		ServiceName: "Ivi",
+		ServiceName: "Kinopoisk",
 	}
 
 	total, err := _repo.GetSum(&subs)

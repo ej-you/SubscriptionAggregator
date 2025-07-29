@@ -1,3 +1,4 @@
+// Package usecase contains usecase implementations for entities.
 package usecase
 
 import (
@@ -7,20 +8,29 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"SubscriptionAggregator/internal/app/entity"
-	"SubscriptionAggregator/internal/app/repo"
 )
 
-var _ SubsUsecase = (*subsUsecase)(nil)
-
-// SubsUsecase implementation.
-type subsUsecase struct {
-	subsRepoDB    repo.SubsRepoDB
-	serviceRepoDB repo.ServiceRepoDB
+type ServiceRepoDB interface {
+	GetByNameOrCreate(service *entity.Service) error
 }
 
-// NewSubsUsecase returns new SubsUsecase instance.
-func NewSubsUsecase(subsRepoDB repo.SubsRepoDB, serviceRepoDB repo.ServiceRepoDB) SubsUsecase {
-	return &subsUsecase{
+type SubsRepoDB interface {
+	Create(subs *entity.Subscription) error
+	GetByID(id string) (*entity.Subscription, error)
+	Update(subs *entity.SubscriptionUpdate) (*entity.Subscription, error)
+	Delete(id string) error
+	GetList() (entity.SubscriptionList, error)
+	GetSum(filter *entity.SubscriptionSumFilter) (int, error)
+}
+
+type SubsUsecase struct {
+	serviceRepoDB ServiceRepoDB
+	subsRepoDB    SubsRepoDB
+}
+
+// NewSubsUsecase returns new subs usecase instance.
+func NewSubsUsecase(serviceRepoDB ServiceRepoDB, subsRepoDB SubsRepoDB) *SubsUsecase {
+	return &SubsUsecase{
 		subsRepoDB:    subsRepoDB,
 		serviceRepoDB: serviceRepoDB,
 	}
@@ -28,7 +38,7 @@ func NewSubsUsecase(subsRepoDB repo.SubsRepoDB, serviceRepoDB repo.ServiceRepoDB
 
 // Create creates new subs.
 // All required fields must be presented. ID is auto-generated.
-func (u *subsUsecase) Create(subs *entity.Subscription) error {
+func (u *SubsUsecase) Create(subs *entity.Subscription) error {
 	logrus.Infof("Create subs: %+v", subs)
 
 	service := &entity.Service{Name: subs.ServiceName}
@@ -45,7 +55,7 @@ func (u *subsUsecase) Create(subs *entity.Subscription) error {
 }
 
 // Get gets one subs by given ID.
-func (u *subsUsecase) GetByID(id string) (*entity.Subscription, error) {
+func (u *SubsUsecase) GetByID(id string) (*entity.Subscription, error) {
 	subs, err := u.subsRepoDB.GetByID(id)
 	return subs, errors.Wrap(err, "get subs by id")
 }
@@ -53,7 +63,7 @@ func (u *subsUsecase) GetByID(id string) (*entity.Subscription, error) {
 // Update updates all subs fields with given data by giving book ID.
 // ID and all required fields must be presented.
 // TODO: check service update
-func (u *subsUsecase) Update(subs *entity.SubscriptionUpdate) (*entity.Subscription, error) {
+func (u *SubsUsecase) Update(subs *entity.SubscriptionUpdate) (*entity.Subscription, error) {
 	// if service name is presented
 	if subs.ServiceName != nil {
 		service := &entity.Service{Name: *subs.ServiceName}
@@ -69,20 +79,20 @@ func (u *subsUsecase) Update(subs *entity.SubscriptionUpdate) (*entity.Subscript
 }
 
 // Delete deletes subs by its ID.
-func (u *subsUsecase) Delete(id string) error {
+func (u *SubsUsecase) Delete(id string) error {
 	err := u.subsRepoDB.Delete(id)
 	return errors.Wrap(err, "delete subs")
 }
 
 // GetAll gets all subs.
 // TODO: add pagination
-func (u *subsUsecase) GetAll() (entity.SubscriptionList, error) {
+func (u *SubsUsecase) GetAll() (entity.SubscriptionList, error) {
 	subsList, err := u.subsRepoDB.GetList()
 	return subsList, errors.Wrap(err, "get all subs")
 }
 
 // GetSum returns sum of subs prices filtered by filter.
-func (u *subsUsecase) GetSum(filter *entity.SubscriptionSumFilter) (int, error) {
+func (u *SubsUsecase) GetSum(filter *entity.SubscriptionSumFilter) (int, error) {
 	totalPrice, err := u.subsRepoDB.GetSum(filter)
 	return totalPrice, errors.Wrap(err, "get subs prices sum")
 }
