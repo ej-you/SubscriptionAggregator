@@ -57,6 +57,7 @@ func (r *SubsRepoPG) GetByID(subsID string) (*entity.Subscription, error) {
 // Update updates subscription.
 // It selects subs by given ID and replace all old values (from DB) to new (given).
 // It returns full filled updated subs.
+// TODO: fix dates update. Now start date can be after end date.
 func (r *SubsRepoPG) Update(subs *entity.SubscriptionUpdate) (*entity.Subscription, error) {
 	// update subs
 	err := r.dbStorage.Model(&entity.Subscription{}).
@@ -133,7 +134,7 @@ func (r *SubsRepoPG) GetSum(filter *entity.SubscriptionSumFilter) (int, error) {
 
 		--- start_date = '2025-10-01' ---
 		SELECT price, start_date, end_date,
-		GREATEST('2025-09-01', start_date) FROM subs
+		GREATEST('2025-10-01', start_date) FROM subs
 		WHERE end_date IS NULL AND start_date < '2025-10-01';
 
 		--- end_date = '2025-12-01' ---
@@ -162,6 +163,49 @@ func (r *SubsRepoPG) GetSum(filter *entity.SubscriptionSumFilter) (int, error) {
 		WHERE end_date >= '2025-09-01' AND end_date <= '2025-12-01';
 
 
+
+
+		--- start_date = '2025-10-01' ---
+		--- end_date = '2025-11-01' ---
+		SELECT price, start_date, end_date,
+		GREATEST('2025-10-01', start_date),
+		LEAST('2025-11-01', end_date) FROM subs
+		WHERE end_date IS NULL AND start_date < '2025-10-01' OR
+		end_date = '2025-11-01' OR
+		start_date >= '2025-10-01' AND start_date < '2025-11-01' OR
+		start_date <= '2025-10-01' AND end_date >= '2025-11-01' OR
+		end_date >= '2025-10-01' AND end_date <= '2025-11-01';
+
+
+
+
+		SELECT price, start_date, end_date,
+		GREATEST('2025-10-01', start_date),
+		LEAST('2025-11-01', end_date),
+		(DATE_PART('year', age(LEAST('2025-11-01', end_date), GREATEST('2025-10-01', start_date))) * 12 +
+		DATE_PART('month', age(LEAST('2025-11-01', end_date), GREATEST('2025-10-01', start_date)))) * price AS total
+		FROM subs
+		WHERE end_date IS NULL AND start_date < '2025-10-01' OR
+		end_date = ('2025-11-01'::date + INTERVAL '1 month') OR
+		start_date >= '2025-10-01' AND start_date < '2025-11-01' OR
+		start_date <= '2025-10-01' AND end_date >= '2025-11-01' OR
+		end_date > '2025-10-01' AND end_date <= '2025-11-01';
+
+
+
+
+		--- FINAL QUERY WITH DATES CONDITIONS ---
+		--- start_date = '2025-08-01' ---
+		--- end_date = '2025-11-01' ---
+		SELECT SUM(
+		(DATE_PART('year', age(LEAST('2025-11-01', end_date), GREATEST('2025-08-01', start_date))) * 12 +
+		DATE_PART('month', age(LEAST('2025-11-01', end_date), GREATEST('2025-08-01', start_date)))) * price
+		) AS total FROM subs
+		WHERE end_date IS NULL AND start_date < '2025-08-01' OR
+		end_date = ('2025-11-01'::date + INTERVAL '1 month') OR
+		start_date >= '2025-08-01' AND start_date < '2025-11-01' OR
+		start_date <= '2025-08-01' AND end_date >= '2025-11-01' OR
+		end_date > '2025-08-01' AND end_date <= '2025-11-01';
 
 
 
