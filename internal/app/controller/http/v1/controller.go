@@ -69,6 +69,7 @@ func (c *SubsController) Create(ctx *fiber.Ctx) error {
 	if err := c.subsUC.Create(&subs); err != nil {
 		return err
 	}
+	subs.FormatDates()
 	return ctx.Status(fiber.StatusCreated).JSON(subs)
 }
 
@@ -97,6 +98,7 @@ func (c *SubsController) GetByID(ctx *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	subs.FormatDates()
 	return ctx.Status(fiber.StatusOK).JSON(subs)
 }
 
@@ -147,6 +149,7 @@ func (c *SubsController) Update(ctx *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	updatedSubs.FormatDates()
 	return ctx.Status(fiber.StatusOK).JSON(updatedSubs)
 }
 
@@ -204,6 +207,9 @@ func (c *SubsController) GetList(ctx *fiber.Ctx) error {
 	err := c.subsUC.GetList(subsList)
 	if err != nil {
 		return err
+	}
+	for i := range subsList.Data {
+		subsList.Data[i].FormatDates()
 	}
 	return ctx.Status(fiber.StatusOK).JSON(subsList)
 }

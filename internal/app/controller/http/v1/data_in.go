@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -36,8 +35,15 @@ type inSubsCreate struct {
 // ParseDates parses given string dates into StartDateParsed and EndDateParsed fields.
 // It returns parsing error if it occurs.
 func (c *inSubsCreate) ParseDates() (err error) {
-	c.StartDateParsed, c.EndDateParsed, err = parseDates(&c.StartDate, c.EndDate)
-	return err // err OR nil
+	c.StartDateParsed, err = parseDate(&c.StartDate)
+	if err != nil {
+		return fmt.Errorf("parse start date: %w", err)
+	}
+	c.EndDateParsed, err = parseDate(c.EndDate)
+	if err != nil {
+		return fmt.Errorf("parse end date: %w", err)
+	}
+	return nil
 }
 
 // @description inSubsUpdate is body input data with optional subs data.
@@ -61,9 +67,16 @@ type inSubsUpdate struct {
 
 // ParseDates parses given string dates into StartDateParsed and EndDateParsed fields.
 // It returns parsing error if it occurs.
-func (c *inSubsUpdate) ParseDates() (err error) {
-	c.StartDateParsed, c.EndDateParsed, err = parseDates(c.StartDate, c.EndDate)
-	return err // err OR nil
+func (u *inSubsUpdate) ParseDates() (err error) {
+	u.StartDateParsed, err = parseDate(u.StartDate)
+	if err != nil {
+		return fmt.Errorf("parse start date: %w", err)
+	}
+	u.EndDateParsed, err = parseDate(u.EndDate)
+	if err != nil {
+		return fmt.Errorf("parse end date: %w", err)
+	}
+	return nil
 }
 
 // @description inSubSumFilter is query-params with user ans service.
@@ -85,36 +98,28 @@ type inSubSumFilter struct {
 
 // ParseDates parses given string dates into StartDateParsed and EndDateParsed fields.
 // It returns parsing error if it occurs.
-func (c *inSubSumFilter) ParseDates() (err error) {
-	c.StartDateParsed, c.EndDateParsed, err = parseDates(c.StartDate, c.EndDate)
-	return err // err OR nil
+func (f *inSubSumFilter) ParseDates() (err error) {
+	f.StartDateParsed, err = parseDate(f.StartDate)
+	if err != nil {
+		return fmt.Errorf("parse start date: %w", err)
+	}
+	f.EndDateParsed, err = parseDate(f.EndDate)
+	if err != nil {
+		return fmt.Errorf("parse end date: %w", err)
+	}
+	return nil
 }
 
-// parseDates parses given start and end string dates into time.Time structs.
-// It returns parsing error if it occurs. Also it checks that end date is after startd date
-// if both start and end dates is not nil.
-func parseDates(startStr, endStr *string) (startDate, endDate *time.Time, err error) {
+// parseDate parses given string date into time.Time struct.
+// Also it returns parsing error if it occurs.
+func parseDate(strDate *string) (*time.Time, error) {
 	// parse start date if it is presented
-	if startStr != nil {
-		parsedStart, err := utils.ParseDate(*startStr)
-		if err != nil {
-			return startDate, endDate, fmt.Errorf("parse start date: %w", err)
-		}
-		startDate = &parsedStart
+	if strDate == nil {
+		return nil, nil
 	}
-	// parse end date if it is presented
-	if endStr != nil {
-		parsedEnd, err := utils.ParseDate(*endStr)
-		if err != nil {
-			return startDate, endDate, fmt.Errorf("parse end date: %w", err)
-		}
-		endDate = &parsedEnd
+	parsedStart, err := utils.ParseDate(*strDate)
+	if err != nil {
+		return nil, err
 	}
-	if startDate != nil && endDate != nil {
-		// if end date after start date
-		if startDate.After(*endDate) {
-			return startDate, endDate, errors.New("end date after start date")
-		}
-	}
-	return startDate, endDate, nil
+	return &parsedStart, nil
 }

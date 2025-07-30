@@ -45,7 +45,7 @@ definitions:
         minimum: 1
         type: integer
       pages:
-        description: total pagea amount
+        description: total pages amount
         type: integer
       total:
         description: total subs

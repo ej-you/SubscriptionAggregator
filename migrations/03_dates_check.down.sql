@@ -1,0 +1,1 @@
+ALTER TABLE subs DROP CONSTRAINT check_date_range;

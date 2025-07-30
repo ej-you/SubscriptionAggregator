@@ -3,6 +3,8 @@ package entity
 
 import "time"
 
+const _datesFormat = "01-2006" // string format for start and end dates
+
 // @description Subscription object
 type Subscription struct {
 	// subscription uuid
@@ -11,10 +13,15 @@ type Subscription struct {
 	Price int `json:"price" gorm:"price;not null"`
 	// user uuid
 	UserID string `json:"user_id" gorm:"user_id;type:uuid;not null"`
+	// parsed start date
+	StartDate *time.Time `json:"-" gorm:"start_date;not null"`
+	// parsed end date
+	EndDate *time.Time `json:"-" gorm:"end_date"`
+
 	// start date
-	StartDate *time.Time `json:"start_date" gorm:"start_date;not null"`
+	StartDateFormatted string `json:"start_date"`
 	// end date
-	EndDate *time.Time `json:"end_date" gorm:"end_date"`
+	EndDateFormatted *string `json:"end_date,omitempty"`
 
 	// service uuid
 	ServiceID string `json:"-" gorm:"service_id;type:uuid"`
@@ -24,6 +31,18 @@ type Subscription struct {
 
 func (Subscription) TableName() string {
 	return "subs"
+}
+
+// FormatDates formats start and end dates from time.Time into strings MM-YYYY.
+func (s *Subscription) FormatDates() {
+	s.StartDateFormatted = s.StartDate.Format(_datesFormat)
+
+	// skip if end date is not presented
+	if s.EndDate == nil {
+		return
+	}
+	endDateFormatted := s.EndDate.Format(_datesFormat)
+	s.EndDateFormatted = &endDateFormatted
 }
 
 // @description Pagination settings for SubscriptionList result.

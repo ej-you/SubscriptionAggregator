@@ -30,7 +30,13 @@ func NewSubsRepoDB(dbStorage *gorm.DB) *SubsRepoPG {
 // All necessary fields must be presented. ID will be generated.
 func (r *SubsRepoPG) Create(subs *entity.Subscription) error {
 	subs.ID = uuid.NewString()
-	if err := r.dbStorage.Create(subs).Error; err != nil {
+	err := r.dbStorage.Create(subs).Error
+	// dates check constraint error
+	if err != nil && goerrors.Is(err, gorm.ErrCheckConstraintViolated) {
+		return fmt.Errorf("%w: start date must be before end date", errors.ErrValidateData)
+	}
+	// unknown error
+	if err != nil {
 		return fmt.Errorf("create: %w", err)
 	}
 	return nil
@@ -57,12 +63,16 @@ func (r *SubsRepoPG) GetByID(subsID string) (*entity.Subscription, error) {
 // Update updates subscription.
 // It selects subs by given ID and replace all old values (from DB) to new (given).
 // It returns full filled updated subs.
-// TODO: fix dates update. Now start date can be after end date.
 func (r *SubsRepoPG) Update(subs *entity.SubscriptionUpdate) (*entity.Subscription, error) {
 	// update subs
 	err := r.dbStorage.Model(&entity.Subscription{}).
 		Where("id = ?", subs.ID).
-		Updates(subs).Error
+		Updates(subs).Statement.Error
+	// dates check constraint error
+	if err != nil && goerrors.Is(err, gorm.ErrCheckConstraintViolated) {
+		return nil, fmt.Errorf("%w: start date must be before end date", errors.ErrValidateData)
+	}
+	// unknown error
 	if err != nil {
 		return nil, fmt.Errorf("update: %w", err)
 	}
@@ -264,6 +274,10 @@ func (r *SubsRepoPG) GetSum(filter *entity.SubscriptionSumFilter) (int, error) {
 	// }
 	// return totalPrice, nil
 }
+
+// // checkDatesForUpdate checks that dates after
+// func checkDatesForUpdate(subsDB *entity.Subscription, subsUpdate *entity.SubscriptionUpdate) {
+// }
 
 // calcPages calc pages amount.
 func calcPages(total int64, limit int) int {

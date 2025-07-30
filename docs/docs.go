@@ -289,7 +289,7 @@ const docTemplate = `{
                     "minimum": 1
                 },
                 "pages": {
-                    "description": "total pagea amount",
+                    "description": "total pages amount",
                     "type": "integer"
                 },
                 "total": {
