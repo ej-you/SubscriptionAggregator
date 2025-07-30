@@ -18,9 +18,9 @@ type Subscription struct {
 	// parsed end date
 	EndDate *time.Time `json:"-" gorm:"end_date"`
 
-	// start date
+	// start date like MM-YYYY
 	StartDateFormatted string `json:"start_date"`
-	// end date
+	// end date like MM-YYYY
 	EndDateFormatted *string `json:"end_date,omitempty"`
 
 	// service uuid
@@ -89,9 +89,24 @@ type SubscriptionSumFilter struct {
 	// user uuid
 	UserID string `json:"user_id,omitempty"`
 	// start date
-	StartDate *time.Time `json:"start_date,omitempty"`
+	StartDate *time.Time `json:"-"`
 	// end date
-	EndDate *time.Time `json:"end_date,omitempty"`
+	EndDate *time.Time `json:"-"`
+
+	// start date like MM-YYYY
+	StartDateFormatted *string `json:"start_date,omitempty"`
+	// end date like MM-YYYY
+	EndDateFormatted *string `json:"end_date,omitempty"`
+}
+
+// FormatDates formats start and end dates from time.Time into strings MM-YYYY.
+func (s *SubscriptionSumFilter) FormatDates() {
+	// start date
+	startDateFormatted := s.StartDate.Format(_datesFormat)
+	s.StartDateFormatted = &startDateFormatted
+	// end date
+	endDateFormatted := s.EndDate.Format(_datesFormat)
+	s.EndDateFormatted = &endDateFormatted
 }
 
 // @description Sum of subs prices filtered by Filter.

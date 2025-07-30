@@ -131,153 +131,40 @@ func (r *SubsRepoPG) GetList(subsList *entity.SubscriptionList) error {
 }
 
 // GetSum returns sum of subs prices filtered by given filter.
-// TODO: rewrite function
 func (r *SubsRepoPG) GetSum(filter *entity.SubscriptionSumFilter) (int, error) {
-	/*
-		SELECT price, (DATE_PART('year', age(end_date, start_date)) * 12 +
-		DATE_PART('month', age(end_date, start_date))) AS period,
-		start_date, end_date FROM subs;
+	dbQuery := r.dbStorage.Model(&entity.Subscription{})
+	// apply main conditions
+	if filter.UserID != "" {
+		dbQuery = dbQuery.Where("user_id = ?", filter.UserID)
+	}
+	if filter.ServiceName != "" {
+		dbQuery = dbQuery.Where("service_name = ?", filter.ServiceName)
+	}
 
-		SELECT (DATE_PART('year', age(end_date, start_date)) * 12 +
-		DATE_PART('month', age(end_date, start_date))) * price AS total,
-		start_date, end_date FROM subs;
+	dateCond := r.dbStorage.Model(&entity.Subscription{})
+	// collect date condition
+	dateCond = dateCond.Or("end_date IS NULL AND start_date < ?::date", filter.StartDate).
+		Or("start_date >= ?::date AND start_date < ?::date",
+			filter.StartDate, filter.EndDate).
+		Or("start_date <= ?::date AND end_date >= ?::date", filter.StartDate, filter.EndDate).
+		Or("end_date > ?::date AND end_date <= ?::date", filter.StartDate, filter.EndDate)
+	// connect date condition to main conditions
+	dbQuery = dbQuery.Where(dateCond)
 
-		--- start_date = '2025-10-01' ---
-		SELECT price, start_date, end_date,
-		GREATEST('2025-10-01', start_date) FROM subs
-		WHERE end_date IS NULL AND start_date < '2025-10-01';
-
-		--- end_date = '2025-12-01' ---
-		SELECT price, start_date, end_date FROM subs
-		WHERE end_date = '2025-12-01';
-
-		--- start_date = '2025-09-01' ---
-		--- end_date = '2025-12-01' ---
-		SELECT price, start_date, end_date,
-		GREATEST('2025-09-01', start_date),
-		LEAST('2025-12-01', end_date) FROM subs
-		WHERE start_date >= '2025-09-01' AND start_date < '2025-12-01';
-
-		--- start_date = '2025-10-01' ---
-		--- end_date = '2025-11-01' ---
-		SELECT price, start_date, end_date,
-		GREATEST('2025-10-01', start_date),
-		LEAST('2025-11-01', end_date) FROM subs
-		WHERE start_date <= '2025-10-01' AND end_date >= '2025-11-01';
-
-		--- start_date = '2025-09-01' ---
-		--- end_date = '2025-12-01' ---
-		SELECT price, start_date, end_date,
-		GREATEST('2025-10-01', start_date),
-		LEAST('2025-11-01', end_date) FROM subs
-		WHERE end_date >= '2025-09-01' AND end_date <= '2025-12-01';
-
-
-
-
-		--- start_date = '2025-10-01' ---
-		--- end_date = '2025-11-01' ---
-		SELECT price, start_date, end_date,
-		GREATEST('2025-10-01', start_date),
-		LEAST('2025-11-01', end_date) FROM subs
-		WHERE end_date IS NULL AND start_date < '2025-10-01' OR
-		end_date = '2025-11-01' OR
-		start_date >= '2025-10-01' AND start_date < '2025-11-01' OR
-		start_date <= '2025-10-01' AND end_date >= '2025-11-01' OR
-		end_date >= '2025-10-01' AND end_date <= '2025-11-01';
-
-
-
-
-		SELECT price, start_date, end_date,
-		GREATEST('2025-10-01', start_date),
-		LEAST('2025-11-01', end_date),
-		(DATE_PART('year', age(LEAST('2025-11-01', end_date), GREATEST('2025-10-01', start_date))) * 12 +
-		DATE_PART('month', age(LEAST('2025-11-01', end_date), GREATEST('2025-10-01', start_date)))) * price AS total
-		FROM subs
-		WHERE end_date IS NULL AND start_date < '2025-10-01' OR
-		end_date = ('2025-11-01'::date + INTERVAL '1 month') OR
-		start_date >= '2025-10-01' AND start_date < '2025-11-01' OR
-		start_date <= '2025-10-01' AND end_date >= '2025-11-01' OR
-		end_date > '2025-10-01' AND end_date <= '2025-11-01';
-
-
-
-
-		--- FINAL QUERY WITH DATES CONDITIONS ---
-		--- start_date = '2025-08-01' ---
-		--- end_date = '2025-11-01' ---
-		SELECT SUM(
-		(DATE_PART('year', age(LEAST('2025-11-01', end_date), GREATEST('2025-08-01', start_date))) * 12 +
-		DATE_PART('month', age(LEAST('2025-11-01', end_date), GREATEST('2025-08-01', start_date)))) * price
-		) AS total FROM subs
-		WHERE end_date IS NULL AND start_date < '2025-08-01' OR
-		end_date = ('2025-11-01'::date + INTERVAL '1 month') OR
-		start_date >= '2025-08-01' AND start_date < '2025-11-01' OR
-		start_date <= '2025-08-01' AND end_date >= '2025-11-01' OR
-		end_date > '2025-08-01' AND end_date <= '2025-11-01';
-
-
-
-		if filter.StartDate != nil {
-			dateCond = dateCond.Or("start_date <= ?::date AND end_date IS NULL", filter.StartDate)
-		}
-		if filter.EndDate != nil {
-			dateCond = dateCond.Or("end_date = ?::date", filter.EndDate)
-		}
-		if filter.StartDate != nil && filter.EndDate != nil {
-			dateCond = dateCond.Or("start_date >= ?::date AND start_date < ?::date", filter.StartDate, filter.EndDate).
-				Or("start_date <= ?::date AND end_date >= ?::date", filter.StartDate, filter.EndDate).
-				Or("end_date >= ?::date AND end_date <= ?::date", filter.StartDate, filter.EndDate)
-		}
-	*/
-
-	return 350, nil
-	// var prices []int
-
-	// dbQuery := r.dbStorage.Model(&entity.Subscription{})
-	// // apply main conditions
-	// if filter.UserID != "" {
-	// 	dbQuery = dbQuery.Where("user_id = ?", filter.UserID)
-	// }
-	// if filter.ServiceName != "" {
-	// 	dbQuery = dbQuery.Where("service_name = ?", filter.ServiceName)
-	// }
-
-	// dateCond := r.dbStorage.Model(&entity.Subscription{})
-	// // collect date condition
-	// if filter.StartDate != nil {
-	// 	dateCond = dateCond.Or("start_date <= ?::date AND end_date IS NULL", filter.StartDate)
-	// }
-	// if filter.EndDate != nil {
-	// 	dateCond = dateCond.Or("end_date = ?::date", filter.EndDate)
-	// }
-	// if filter.StartDate != nil && filter.EndDate != nil {
-	// 	dateCond = dateCond.Or("start_date >= ?::date AND start_date < ?::date",
-	// 		filter.StartDate, filter.EndDate).
-	// 		Or("start_date <= ?::date AND end_date >= ?::date", filter.StartDate, filter.EndDate).
-	// 		Or("end_date >= ?::date AND end_date <= ?::date", filter.StartDate, filter.EndDate)
-	// }
-	// // connect date condition to main conditions
-	// dbQuery = dbQuery.Where(dateCond)
-
-	// // select prices
-	// err := dbQuery.Pluck("price", &prices).Error
-	// if err != nil {
-	// 	return 0, fmt.Errorf("get sum: %w", err)
-	// }
-
-	// // sum gotten prices
-	// var totalPrice int
-	// for _, price := range prices {
-	// 	totalPrice += price
-	// }
-	// return totalPrice, nil
+	var total int
+	// select total
+	err := dbQuery.Select(`COALESCE(SUM(
+		(DATE_PART('year', age(LEAST(?::date, end_date),
+		GREATEST(?::date, start_date))) * 12 +
+		DATE_PART('month', age(LEAST(?::date, end_date),
+		GREATEST(?::date, start_date)))) * price
+		), 0) AS total`, filter.EndDate, filter.StartDate, filter.EndDate, filter.StartDate).
+		Scan(&total).Error
+	if err != nil {
+		return 0, fmt.Errorf("get sum: %w", err)
+	}
+	return total, nil
 }
-
-// // checkDatesForUpdate checks that dates after
-// func checkDatesForUpdate(subsDB *entity.Subscription, subsUpdate *entity.SubscriptionUpdate) {
-// }
 
 // calcPages calc pages amount.
 func calcPages(total int64, limit int) int {

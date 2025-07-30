@@ -108,13 +108,15 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Дата начала",
                         "name": "start_date",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "string",
                         "description": "Дата окончания",
                         "name": "end_date",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -235,7 +237,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "end_date": {
-                    "description": "end date",
+                    "description": "end date like MM-YYYY",
                     "type": "string"
                 },
                 "id": {
@@ -251,7 +253,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "start_date": {
-                    "description": "start date",
+                    "description": "start date like MM-YYYY",
                     "type": "string"
                 },
                 "user_id": {

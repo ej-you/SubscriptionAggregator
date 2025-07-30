@@ -170,8 +170,6 @@ func (c *SubsController) Delete(ctx *fiber.Ctx) error {
 	// validate parsed data
 	if err := c.valid.Validate(pathData); err != nil {
 		return fmt.Errorf("%w: %s", errors.ErrValidateData, err.Error())
-		// err = fmt.Errorf("%w: %s", errors.ErrValidateData, err.Error())
-		// return ctx.Status(400).JSON(err.Error())
 	}
 
 	// get subs
@@ -221,8 +219,8 @@ func (c *SubsController) GetList(ctx *fiber.Ctx) error {
 // @tags			subs-advanced
 // @param			user_id			query		string	false	"UUID пользователя"	example:"60601fee-2bf1-4721-ae6f-7636e79a0cba"
 // @param			service_name	query		string	false	"Название сервиса"	example:"Yandex Plus"
-// @param			start_date		query		string	false	"Дата начала"		example:"07-2025"
-// @param			end_date		query		string	false	"Дата окончания"	example:"08-2025"
+// @param			start_date		query		string	true	"Дата начала"		example:"07-2025"
+// @param			end_date		query		string	true	"Дата окончания"	example:"08-2025"
 // @success		200				{object}	entity.SubscriptionSum
 // @failure		400				"Невалидный(ые) параметр(ы) запроса"
 func (c *SubsController) GetSum(ctx *fiber.Ctx) error {
@@ -240,17 +238,21 @@ func (c *SubsController) GetSum(ctx *fiber.Ctx) error {
 		return fmt.Errorf("%w: %s", errors.ErrValidateData, err.Error())
 	}
 
-	subSumFilter := entity.SubscriptionSumFilter{
+	subSumFilter := &entity.SubscriptionSumFilter{
 		ServiceName: queryData.ServiceName,
 		UserID:      queryData.UserID,
 		StartDate:   queryData.StartDateParsed,
 		EndDate:     queryData.EndDateParsed,
 	}
 	// get subs
-	subsSum, err := c.subsUC.GetSum(&subSumFilter)
+	subsSum, err := c.subsUC.GetSum(subSumFilter)
 	if err != nil {
 		return err
 	}
-	totalData := entity.SubscriptionSum{Sum: subsSum}
+	subSumFilter.FormatDates()
+	totalData := entity.SubscriptionSum{
+		Sum:    subsSum,
+		Filter: subSumFilter,
+	}
 	return ctx.Status(fiber.StatusOK).JSON(totalData)
 }

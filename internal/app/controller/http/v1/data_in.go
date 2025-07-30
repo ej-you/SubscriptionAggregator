@@ -86,9 +86,9 @@ type inSubSumFilter struct {
 	// user uuid
 	UserID string `query:"user_id,omitempty" validate:"omitempty,uuid4"`
 	// start date
-	StartDate *string `query:"start_date,omitempty" validate:"omitempty"`
+	StartDate *string `query:"start_date,omitempty" validate:"required"`
 	// end date
-	EndDate *string `query:"end_date,omitempty" validate:"omitempty"`
+	EndDate *string `query:"end_date,omitempty" validate:"required"`
 
 	// string start date parsed into time.Time
 	StartDateParsed *time.Time `json:"-"`
